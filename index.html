@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>腳本步驟庫</title>
+    <meta
+      name="description"
+      content="保存 Mac Terminal 指令、Python 腳本與操作步驟的個人資料庫。"
+    />
+    <style>
+      :root {
+        --background: #f5f3ee;
+        --foreground: #1e2528;
+        --muted: #687274;
+        --line: #d9d5ca;
+        --panel: #fffdf8;
+        --panel-strong: #e7f0ec;
+        --accent: #146c5c;
+        --accent-strong: #0c4d42;
+        --accent-soft: #d9ece5;
+        --ink: #171d1f;
+        --code-bg: #101818;
+        --code-text: #e8f5ef;
+        --danger: #9d2f2f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background:
+          linear-gradient(135deg, rgba(20, 108, 92, 0.1), transparent 34%),
+          linear-gradient(225deg, rgba(194, 82, 48, 0.12), transparent 28%),
+          var(--background);
+        color: var(--foreground);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .shell {
+        min-height: 100vh;
+        padding: 22px;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
+        min-height: calc(100vh - 44px);
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 253, 248, 0.82);
+        box-shadow: 0 22px 70px rgba(31, 37, 35, 0.14);
+      }
+
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        overflow: auto;
+        padding: 24px;
+        border-right: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        color: var(--ink);
+        line-height: 1.05;
+      }
+
+      h1 {
+        margin-top: 8px;
+        font-size: clamp(2rem, 5vw, 3.8rem);
+      }
+
+      .brand-block p:not(.eyebrow) {
+        max-width: 30rem;
+        margin: 14px 0 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .eyebrow {
+        margin: 0;
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .upload-zone {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .primary-action,
+      .secondary-action,
+      .detail-actions button,
+      .code-block button {
+        min-height: 42px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        padding: 0 14px;
+        font-weight: 800;
+      }
+
+      .primary-action {
+        background: var(--accent);
+        color: white;
+      }
+
+      .secondary-action,
+      .detail-actions button,
+      .code-block button {
+        border-color: var(--line);
+        background: white;
+        color: var(--foreground);
+      }
+
+      .editor {
+        display: grid;
+        gap: 12px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.83rem;
+        font-weight: 800;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: white;
+        color: var(--foreground);
+        padding: 11px 12px;
+        outline: none;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+
+      textarea {
+        min-height: 84px;
+        resize: vertical;
+        line-height: 1.55;
+      }
+
+      .code-input,
+      pre {
+        font-family: "SFMono-Regular", Consolas, monospace;
+      }
+
+      .library {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 18px;
+        overflow: hidden;
+        padding: 24px;
+      }
+
+      .library-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: end;
+        justify-content: space-between;
+      }
+
+      .library-header h2 {
+        margin-top: 6px;
+        font-size: clamp(1.8rem, 4vw, 3rem);
+      }
+
+      .search-box {
+        width: min(100%, 360px);
+      }
+
+      .library-grid {
+        display: grid;
+        grid-template-columns: minmax(230px, 0.38fr) minmax(0, 0.62fr);
+        min-height: 0;
+        flex: 1;
+        gap: 18px;
+      }
+
+      .script-list {
+        display: flex;
+        min-height: 0;
+        flex-direction: column;
+        gap: 10px;
+        overflow: auto;
+      }
+
+      .script-row {
+        display: flex;
+        min-height: 74px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 253, 248, 0.74);
+        padding: 13px;
+        color: var(--foreground);
+        text-align: left;
+      }
+
+      .script-row.active {
+        border-color: var(--accent);
+        background: var(--panel-strong);
+      }
+
+      .script-row strong,
+      .script-row small {
+        display: block;
+      }
+
+      .script-row small,
+      .script-row time {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .detail-panel {
+        min-width: 0;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 20px;
+      }
+
+      .detail-heading {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: start;
+        justify-content: space-between;
+      }
+
+      .detail-heading h3 {
+        margin-top: 8px;
+        font-size: clamp(1.5rem, 3vw, 2.25rem);
+      }
+
+      .detail-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .detail-actions button:last-child {
+        color: var(--danger);
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 18px 0;
+      }
+
+      .tag-row span {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: white;
+        padding: 5px 9px;
+        color: var(--accent-strong);
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .note-block,
+      .code-block {
+        margin-top: 18px;
+      }
+
+      .note-block h4,
+      .code-block h4 {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+      }
+
+      .note-block p,
+      .note-block pre {
+        margin: 0;
+        white-space: pre-wrap;
+        color: var(--foreground);
+        line-height: 1.7;
+      }
+
+      .code-block > div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .code-block pre {
+        overflow: auto;
+        max-height: 48vh;
+        margin: 0;
+        border-radius: 8px;
+        background: var(--code-bg);
+        color: var(--code-text);
+        line-height: 1.65;
+        padding: 18px;
+        white-space: pre;
+      }
+
+      .status-line {
+        min-height: 24px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .empty-state {
+        display: grid;
+        min-height: 140px;
+        place-items: center;
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      @media (max-width: 980px) {
+        .shell {
+          padding: 0;
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+          min-height: 100vh;
+          border: 0;
+          border-radius: 0;
+        }
+
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .library-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .sidebar,
+        .library {
+          padding: 18px;
+        }
+
+        .upload-zone {
+          grid-template-columns: 1fr;
+        }
+
+        .detail-actions,
+        .code-block > div {
+          width: 100%;
+        }
+
+        .detail-actions button,
+        .code-block button {
+          flex: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <aside class="sidebar" aria-label="腳本管理">
+          <div class="brand-block">
+            <p class="eyebrow">Mac Terminal / Python</p>
+            <h1>腳本步驟庫</h1>
+            <p>保存你常用的 .py、Terminal 指令、操作步驟與查詢關鍵字。</p>
+          </div>
+
+          <div class="upload-zone">
+            <input class="visually-hidden" id="fileInput" type="file" accept=".py,text/x-python,text/plain" />
+            <button class="primary-action" id="uploadButton" type="button">上傳 .py</button>
+            <button class="secondary-action" id="exportButton" type="button">匯出資料</button>
+          </div>
+
+          <form class="editor" id="editor">
+            <label>標題<input id="title" placeholder="批次重新命名檔案" /></label>
+            <label>檔名<input id="filename" placeholder="rename_files.py" /></label>
+            <label>用途<textarea id="purpose" rows="3" placeholder="這段腳本解決什麼問題"></textarea></label>
+            <label>步驟<textarea id="steps" rows="4" placeholder="1. 進入資料夾&#10;2. 執行 python ..."></textarea></label>
+            <label>程式碼 / 指令<textarea class="code-input" id="code" rows="6" required placeholder="python script.py"></textarea></label>
+            <label>標籤<input id="tags" placeholder="terminal, pandas, automation" /></label>
+            <button class="primary-action" type="submit">保存</button>
+          </form>
+        </aside>
+
+        <section class="library" aria-label="已保存腳本">
+          <header class="library-header">
+            <div>
+              <p class="eyebrow" id="countLabel">0 筆資料</p>
+              <h2>我的常用流程</h2>
+            </div>
+            <label class="search-box">搜尋<input id="query" placeholder="檔名、標籤、指令內容" /></label>
+          </header>
+
+          <div class="library-grid">
+            <div class="script-list" id="scriptList"></div>
+            <article class="detail-panel" id="detailPanel"></article>
+          </div>
+
+          <p class="status-line" id="status" role="status">準備好了</p>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const storageKey = "python-script-vault-records";
+      const starterScripts = [
+        {
+          id: "starter-venv",
+          title: "建立 Python 虛擬環境",
+          filename: "setup_venv.py",
+          purpose: "紀錄每次開新專案時要跑的 Terminal 流程，避免重複查詢。",
+          steps: "1. 進入專案資料夾\n2. 建立 .venv\n3. 啟動環境\n4. 安裝 requirements.txt",
+          code: "python3 -m venv .venv\nsource .venv/bin/activate\npython -m pip install --upgrade pip\npip install -r requirements.txt",
+          tags: ["terminal", "venv", "setup"],
+          createdAt: "2026-07-17T00:00:00.000Z",
+          updatedAt: "2026-07-17T00:00:00.000Z"
+        },
+        {
+          id: "starter-run",
+          title: "執行單一 Python 檔案",
+          filename: "run_script.py",
+          purpose: "保存常用的執行格式，包含帶參數的範例。",
+          steps: "1. 確認目前位置\n2. 啟動虛擬環境\n3. 執行腳本並帶入參數",
+          code: "pwd\nsource .venv/bin/activate\npython my_script.py --input data.csv --output result.csv",
+          tags: ["terminal", "run", "args"],
+          createdAt: "2026-07-17T00:00:00.000Z",
+          updatedAt: "2026-07-17T00:00:00.000Z"
+        }
+      ];
+
+      let scripts = loadScripts();
+      let activeId = scripts[0]?.id || "";
+      let query = "";
+
+      const fields = {
+        title: document.getElementById("title"),
+        filename: document.getElementById("filename"),
+        purpose: document.getElementById("purpose"),
+        steps: document.getElementById("steps"),
+        code: document.getElementById("code"),
+        tags: document.getElementById("tags")
+      };
+
+      function loadScripts() {
+        try {
+          const saved = localStorage.getItem(storageKey);
+          return saved ? JSON.parse(saved) : starterScripts;
+        } catch {
+          return starterScripts;
+        }
+      }
+
+      function persist() {
+        localStorage.setItem(storageKey, JSON.stringify(scripts));
+      }
+
+      function splitTags(value) {
+        return value.split(",").map((tag) => tag.trim()).filter(Boolean);
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function formatDate(value) {
+        return new Intl.DateTimeFormat("zh-TW", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(new Date(value));
+      }
+
+      function getFilteredScripts() {
+        const keyword = query.trim().toLowerCase();
+        if (!keyword) return scripts;
+        return scripts.filter((script) =>
+          [script.title, script.filename, script.purpose, script.steps, script.code, script.tags.join(" ")]
+            .join(" ")
+            .toLowerCase()
+            .includes(keyword)
+        );
+      }
+
+      function setStatus(text) {
+        document.getElementById("status").textContent = text;
+      }
+
+      function render() {
+        const filtered = getFilteredScripts();
+        const active = scripts.find((script) => script.id === activeId) || filtered[0] || scripts[0];
+        document.getElementById("countLabel").textContent = `${scripts.length} 筆資料`;
+
+        document.getElementById("scriptList").innerHTML = filtered.length
+          ? filtered
+              .map(
+                (script) => `
+                  <button class="script-row ${active?.id === script.id ? "active" : ""}" data-id="${escapeHtml(script.id)}" type="button">
+                    <span><strong>${escapeHtml(script.title)}</strong><small>${escapeHtml(script.filename)}</small></span>
+                    <time>${formatDate(script.updatedAt)}</time>
+                  </button>
+                `
+              )
+              .join("")
+          : '<div class="empty-state">沒有符合的腳本</div>';
+
+        if (!active) {
+          document.getElementById("detailPanel").innerHTML = '<div class="empty-state">尚未保存任何腳本</div>';
+          return;
+        }
+
+        document.getElementById("detailPanel").innerHTML = `
+          <div class="detail-heading">
+            <div>
+              <p class="eyebrow">${escapeHtml(active.filename)}</p>
+              <h3>${escapeHtml(active.title)}</h3>
+            </div>
+            <div class="detail-actions">
+              <button data-copy="${escapeHtml(active.id)}" type="button">複製</button>
+              <button data-delete="${escapeHtml(active.id)}" type="button">刪除</button>
+            </div>
+          </div>
+          <div class="tag-row">${active.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+          <section class="note-block"><h4>用途</h4><p>${escapeHtml(active.purpose || "尚未填寫")}</p></section>
+          <section class="note-block"><h4>步驟</h4><pre>${escapeHtml(active.steps || "尚未填寫")}</pre></section>
+          <section class="code-block">
+            <div><h4>程式碼 / 指令</h4><button data-copy="${escapeHtml(active.id)}" type="button">複製程式碼</button></div>
+            <pre>${escapeHtml(active.code)}</pre>
+          </section>
+        `;
+      }
+
+      document.getElementById("uploadButton").addEventListener("click", () => {
+        document.getElementById("fileInput").click();
+      });
+
+      document.getElementById("fileInput").addEventListener("change", async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (!file.name.endsWith(".py")) {
+          setStatus("請上傳 .py 檔案");
+          return;
+        }
+        const code = await file.text();
+        const now = new Date().toISOString();
+        const record = {
+          id: crypto.randomUUID(),
+          title: file.name.replace(/\.py$/i, "").replaceAll("_", " "),
+          filename: file.name,
+          purpose: "",
+          steps: "",
+          code,
+          tags: ["uploaded", "python"],
+          createdAt: now,
+          updatedAt: now
+        };
+        scripts = [record, ...scripts];
+        activeId = record.id;
+        persist();
+        render();
+        setStatus(`已上傳 ${file.name}`);
+        event.target.value = "";
+      });
+
+      document.getElementById("editor").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const now = new Date().toISOString();
+        const title = fields.title.value.trim() || fields.filename.value.trim() || "未命名腳本";
+        const record = {
+          id: crypto.randomUUID(),
+          title,
+          filename: fields.filename.value.trim() || `${title.replaceAll(" ", "_")}.py`,
+          purpose: fields.purpose.value.trim(),
+          steps: fields.steps.value.trim(),
+          code: fields.code.value.trim(),
+          tags: splitTags(fields.tags.value),
+          createdAt: now,
+          updatedAt: now
+        };
+        scripts = [record, ...scripts];
+        activeId = record.id;
+        persist();
+        event.target.reset();
+        render();
+        setStatus(`已保存 ${record.filename}`);
+      });
+
+      document.getElementById("query").addEventListener("input", (event) => {
+        query = event.target.value;
+        render();
+      });
+
+      document.getElementById("scriptList").addEventListener("click", (event) => {
+        const row = event.target.closest("[data-id]");
+        if (!row) return;
+        activeId = row.dataset.id;
+        render();
+      });
+
+      document.getElementById("detailPanel").addEventListener("click", async (event) => {
+        const copyButton = event.target.closest("[data-copy]");
+        const deleteButton = event.target.closest("[data-delete]");
+        if (copyButton) {
+          const script = scripts.find((item) => item.id === copyButton.dataset.copy);
+          if (script) {
+            await navigator.clipboard.writeText(script.code);
+            setStatus("程式碼已複製");
+          }
+        }
+        if (deleteButton) {
+          scripts = scripts.filter((item) => item.id !== deleteButton.dataset.delete);
+          activeId = scripts[0]?.id || "";
+          persist();
+          render();
+          setStatus("已刪除腳本");
+        }
+      });
+
+      document.getElementById("exportButton").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(scripts, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "python-script-vault.json";
+        link.click();
+        URL.revokeObjectURL(url);
+        setStatus("資料已匯出");
+      });
+
+      render();
+    </script>
+  </body>
+</html>
