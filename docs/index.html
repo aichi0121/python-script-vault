@@ -141,6 +141,16 @@
         gap: 12px;
       }
 
+      .edit-banner {
+        border: 1px solid var(--accent);
+        border-radius: 7px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        padding: 10px 12px;
+        font-size: 0.86rem;
+        font-weight: 800;
+      }
+
       label {
         display: grid;
         gap: 6px;
@@ -471,13 +481,17 @@
           </div>
 
           <form class="editor" id="editor">
+            <div class="edit-banner" id="editBanner" hidden>正在編輯既有流程</div>
             <label>標題<input id="title" placeholder="批次重新命名檔案" /></label>
             <label>檔名<input id="filename" placeholder="rename_files.py" /></label>
             <label>用途<textarea id="purpose" rows="3" placeholder="這段腳本解決什麼問題"></textarea></label>
+            <label>備註<textarea id="note" rows="3" placeholder="例如：模型選擇、品質建議、檔案命名規則"></textarea></label>
+            <label>常見錯誤<textarea id="errors" rows="5" placeholder="no matches found => 確認資料夾內有對應副檔名&#10;&#10;command not found => 先安裝需要的工具"></textarea></label>
             <label>步驟<textarea id="steps" rows="4" placeholder="1. 進入資料夾&#10;2. 執行 python ..."></textarea></label>
             <label>程式碼 / 指令<textarea class="code-input" id="code" rows="6" required placeholder="python script.py"></textarea></label>
             <label>標籤<input id="tags" placeholder="terminal, pandas, automation" /></label>
-            <button class="primary-action" type="submit">保存</button>
+            <button class="primary-action" id="saveButton" type="submit">保存</button>
+            <button class="secondary-action" id="cancelEditButton" type="button" hidden>取消編輯</button>
           </form>
         </aside>
 
@@ -640,11 +654,14 @@
       let scripts = loadScripts();
       let activeId = scripts[0]?.id || "";
       let query = "";
+      let editingId = "";
 
       const fields = {
         title: document.getElementById("title"),
         filename: document.getElementById("filename"),
         purpose: document.getElementById("purpose"),
+        note: document.getElementById("note"),
+        errors: document.getElementById("errors"),
         steps: document.getElementById("steps"),
         code: document.getElementById("code"),
         tags: document.getElementById("tags")
@@ -711,6 +728,64 @@
         };
       }
 
+      function parseErrorDraft(value) {
+        return value
+          .split(/\n{2,}/)
+          .map((block) => block.trim())
+          .filter(Boolean)
+          .map((block) => {
+            const labeled = block.match(/(?:常見錯誤：)?([\s\S]*?)\n(?:解法：)([\s\S]*)/);
+            if (labeled) {
+              return { title: labeled[1].trim(), fix: labeled[2].trim() };
+            }
+            const [title, ...fixParts] = block.split(/\s*(?:=>|→|\|)\s*/);
+            return { title: title.trim(), fix: fixParts.join(" ").trim() };
+          })
+          .filter((error) => error.title || error.fix);
+      }
+
+      function composePurpose(summary, note, errors) {
+        const parts = [summary.trim()];
+        const noteText = note.trim();
+        const parsedErrors = parseErrorDraft(errors);
+        if (noteText) parts.push(`備註：${noteText}`);
+        parsedErrors.forEach((error) => {
+          parts.push(`常見錯誤：${error.title}\n解法：${error.fix}`);
+        });
+        return parts.filter(Boolean).join("\n\n");
+      }
+
+      function infoToErrorDraft(errors) {
+        return errors.map((error) => `常見錯誤：${error.title}\n解法：${error.fix}`).join("\n\n");
+      }
+
+      function setEditingMode(script) {
+        const info = splitRecordInfo(script.purpose || "");
+        editingId = script.id;
+        activeId = script.id;
+        fields.title.value = script.title;
+        fields.filename.value = script.filename;
+        fields.purpose.value = info.summary;
+        fields.note.value = info.note;
+        fields.errors.value = infoToErrorDraft(info.errors);
+        fields.steps.value = script.steps;
+        fields.code.value = script.code;
+        fields.tags.value = script.tags.join(", ");
+        document.getElementById("editBanner").hidden = false;
+        document.getElementById("cancelEditButton").hidden = false;
+        document.getElementById("saveButton").textContent = "更新";
+        setStatus(`正在編輯 ${script.filename}`);
+        render();
+      }
+
+      function clearEditor() {
+        document.getElementById("editor").reset();
+        editingId = "";
+        document.getElementById("editBanner").hidden = true;
+        document.getElementById("cancelEditButton").hidden = true;
+        document.getElementById("saveButton").textContent = "保存";
+      }
+
       function getFilteredScripts() {
         const keyword = query.trim().toLowerCase();
         if (!keyword) return scripts;
@@ -766,6 +841,8 @@
               <h3>${escapeHtml(active.title)}</h3>
             </div>
             <div class="detail-actions">
+              <button data-edit="${escapeHtml(active.id)}" type="button">編輯</button>
+              <button data-download="${escapeHtml(active.id)}" type="button">下載檔案</button>
               <button data-copy="${escapeHtml(active.id)}" type="button">複製</button>
               <button data-delete="${escapeHtml(active.id)}" type="button">刪除</button>
             </div>
@@ -822,19 +899,46 @@
           id: crypto.randomUUID(),
           title,
           filename: fields.filename.value.trim() || `${title.replaceAll(" ", "_")}.py`,
-          purpose: fields.purpose.value.trim(),
+          purpose: composePurpose(fields.purpose.value, fields.note.value, fields.errors.value),
           steps: fields.steps.value.trim(),
           code: fields.code.value.trim(),
           tags: splitTags(fields.tags.value),
           createdAt: now,
           updatedAt: now
         };
+        if (editingId) {
+          scripts = scripts.map((script) =>
+            script.id === editingId
+              ? {
+                  ...script,
+                  title: record.title,
+                  filename: record.filename,
+                  purpose: record.purpose,
+                  steps: record.steps,
+                  code: record.code,
+                  tags: record.tags,
+                  updatedAt: now
+                }
+              : script
+          );
+          activeId = editingId;
+          persist();
+          clearEditor();
+          render();
+          setStatus(`已更新 ${record.filename}`);
+          return;
+        }
         scripts = [record, ...scripts];
         activeId = record.id;
         persist();
-        event.target.reset();
+        clearEditor();
         render();
         setStatus(`已保存 ${record.filename}`);
+      });
+
+      document.getElementById("cancelEditButton").addEventListener("click", () => {
+        clearEditor();
+        setStatus("已取消編輯");
       });
 
       document.getElementById("query").addEventListener("input", (event) => {
@@ -852,6 +956,29 @@
       document.getElementById("detailPanel").addEventListener("click", async (event) => {
         const copyButton = event.target.closest("[data-copy]");
         const deleteButton = event.target.closest("[data-delete]");
+        const editButton = event.target.closest("[data-edit]");
+        const downloadButton = event.target.closest("[data-download]");
+        if (editButton) {
+          const script = scripts.find((item) => item.id === editButton.dataset.edit);
+          if (script) setEditingMode(script);
+          return;
+        }
+        if (downloadButton) {
+          const script = scripts.find((item) => item.id === downloadButton.dataset.download);
+          if (script) {
+            const blob = new Blob([script.code], {
+              type: script.filename.endsWith(".py") ? "text/x-python" : "text/plain"
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = script.filename || "script.txt";
+            link.click();
+            URL.revokeObjectURL(url);
+            setStatus(`已下載 ${script.filename}`);
+          }
+          return;
+        }
         if (copyButton) {
           const script = scripts.find((item) => item.id === copyButton.dataset.copy);
           if (script) {
