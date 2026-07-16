@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>腳本步驟庫</title>
+    <meta
+      name="description"
+      content="保存 Mac Terminal 指令、Python 腳本與操作步驟的個人資料庫。"
+    />
+    <style>
+      :root {
+        --background: #f5f3ee;
+        --foreground: #1e2528;
+        --muted: #687274;
+        --line: #d9d5ca;
+        --panel: #fffdf8;
+        --panel-strong: #e7f0ec;
+        --accent: #146c5c;
+        --accent-strong: #0c4d42;
+        --accent-soft: #d9ece5;
+        --ink: #171d1f;
+        --code-bg: #101818;
+        --code-text: #e8f5ef;
+        --danger: #9d2f2f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background:
+          linear-gradient(135deg, rgba(20, 108, 92, 0.1), transparent 34%),
+          linear-gradient(225deg, rgba(194, 82, 48, 0.12), transparent 28%),
+          var(--background);
+        color: var(--foreground);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .shell {
+        min-height: 100vh;
+        padding: 22px;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
+        min-height: calc(100vh - 44px);
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 253, 248, 0.82);
+        box-shadow: 0 22px 70px rgba(31, 37, 35, 0.14);
+      }
+
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        overflow: auto;
+        padding: 24px;
+        border-right: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        color: var(--ink);
+        line-height: 1.05;
+      }
+
+      h1 {
+        margin-top: 8px;
+        font-size: clamp(2rem, 5vw, 3.8rem);
+      }
+
+      .brand-block p:not(.eyebrow) {
+        max-width: 30rem;
+        margin: 14px 0 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .eyebrow {
+        margin: 0;
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .upload-zone {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .primary-action,
+      .secondary-action,
+      .detail-actions button,
+      .code-block button {
+        min-height: 42px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        padding: 0 14px;
+        font-weight: 800;
+      }
+
+      .primary-action {
+        background: var(--accent);
+        color: white;
+      }
+
+      .secondary-action,
+      .detail-actions button,
+      .code-block button {
+        border-color: var(--line);
+        background: white;
+        color: var(--foreground);
+      }
+
+      .editor {
+        display: grid;
+        gap: 12px;
+      }
+
+      .edit-banner {
+        border: 1px solid var(--accent);
+        border-radius: 7px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        padding: 10px 12px;
+        font-size: 0.86rem;
+        font-weight: 800;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.83rem;
+        font-weight: 800;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: white;
+        color: var(--foreground);
+        padding: 11px 12px;
+        outline: none;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+
+      textarea {
+        min-height: 84px;
+        resize: vertical;
+        line-height: 1.55;
+      }
+
+      .code-input,
+      pre {
+        font-family: "SFMono-Regular", Consolas, monospace;
+      }
+
+      .library {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 18px;
+        overflow: hidden;
+        padding: 24px;
+      }
+
+      .library-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: end;
+        justify-content: space-between;
+      }
+
+      .library-header h2 {
+        margin-top: 6px;
+        font-size: clamp(1.8rem, 4vw, 3rem);
+      }
+
+      .search-box {
+        width: min(100%, 360px);
+      }
+
+      .library-grid {
+        display: grid;
+        grid-template-columns: minmax(230px, 0.38fr) minmax(0, 0.62fr);
+        min-height: 0;
+        flex: 1;
+        gap: 18px;
+      }
+
+      .script-list {
+        display: flex;
+        min-height: 0;
+        flex-direction: column;
+        gap: 10px;
+        overflow: auto;
+      }
+
+      .script-row {
+        display: flex;
+        min-height: 74px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 253, 248, 0.74);
+        padding: 13px;
+        color: var(--foreground);
+        text-align: left;
+      }
+
+      .script-row.active {
+        border-color: var(--accent);
+        background: var(--panel-strong);
+      }
+
+      .script-row strong,
+      .script-row small {
+        display: block;
+      }
+
+      .script-row small,
+      .script-row time {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .detail-panel {
+        min-width: 0;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 20px;
+      }
+
+      .detail-heading {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: start;
+        justify-content: space-between;
+      }
+
+      .detail-heading h3 {
+        margin-top: 8px;
+        font-size: clamp(1.5rem, 3vw, 2.25rem);
+      }
+
+      .detail-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .detail-actions button:last-child {
+        color: var(--danger);
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 18px 0;
+      }
+
+      .tag-row span {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: white;
+        padding: 5px 9px;
+        color: var(--accent-strong);
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .note-block,
+      .code-block,
+      .info-details {
+        margin-top: 18px;
+      }
+
+      .note-block h4,
+      .code-block h4 {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+      }
+
+      .note-block p,
+      .note-block pre {
+        margin: 0;
+        white-space: pre-wrap;
+        color: var(--foreground);
+        line-height: 1.7;
+      }
+
+      .info-details {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        padding: 0;
+      }
+
+      .info-details summary {
+        min-height: 46px;
+        padding: 13px 14px;
+        color: var(--accent-strong);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .info-details p {
+        margin: 0;
+        padding: 0 14px 14px;
+        color: var(--foreground);
+        line-height: 1.7;
+        white-space: pre-wrap;
+      }
+
+      .error-list {
+        display: grid;
+        gap: 12px;
+        padding: 0 14px 14px;
+      }
+
+      .error-list div {
+        border-left: 3px solid var(--danger);
+        padding-left: 10px;
+      }
+
+      .error-list strong {
+        display: block;
+        color: var(--danger);
+        font-size: 0.88rem;
+      }
+
+      .error-list p {
+        padding: 4px 0 0;
+      }
+
+      .code-block > div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .code-block pre {
+        overflow: auto;
+        max-height: 48vh;
+        margin: 0;
+        border-radius: 8px;
+        background: var(--code-bg);
+        color: var(--code-text);
+        line-height: 1.65;
+        padding: 18px;
+        white-space: pre;
+      }
+
+      .status-line {
+        min-height: 24px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .empty-state {
+        display: grid;
+        min-height: 140px;
+        place-items: center;
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      @media (max-width: 980px) {
+        .shell {
+          padding: 0;
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+          min-height: 100vh;
+          border: 0;
+          border-radius: 0;
+        }
+
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .library-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .sidebar,
+        .library {
+          padding: 18px;
+        }
+
+        .upload-zone {
+          grid-template-columns: 1fr;
+        }
+
+        .detail-actions,
+        .code-block > div {
+          width: 100%;
+        }
+
+        .detail-actions button,
+        .code-block button {
+          flex: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <aside class="sidebar" aria-label="腳本管理">
+          <div class="brand-block">
+            <p class="eyebrow">Mac Terminal / Python</p>
+            <h1>腳本步驟庫</h1>
+            <p>保存你常用的 .py、Terminal 指令、操作步驟與查詢關鍵字。</p>
+          </div>
+
+          <div class="upload-zone">
+            <input class="visually-hidden" id="fileInput" type="file" accept=".py,text/x-python,text/plain" />
+            <button class="primary-action" id="uploadButton" type="button">上傳 .py</button>
+            <button class="secondary-action" id="exportButton" type="button">匯出資料</button>
+          </div>
+
+          <form class="editor" id="editor">
+            <div class="edit-banner" id="editBanner" hidden>正在編輯既有流程</div>
+            <label>標題<input id="title" placeholder="批次重新命名檔案" /></label>
+            <label>檔名<input id="filename" placeholder="rename_files.py" /></label>
+            <label>用途<textarea id="purpose" rows="3" placeholder="這段腳本解決什麼問題"></textarea></label>
+            <label>備註<textarea id="note" rows="3" placeholder="例如：模型選擇、品質建議、檔案命名規則"></textarea></label>
+            <label>常見錯誤<textarea id="errors" rows="5" placeholder="no matches found => 確認資料夾內有對應副檔名&#10;&#10;command not found => 先安裝需要的工具"></textarea></label>
+            <label>步驟<textarea id="steps" rows="4" placeholder="1. 進入資料夾&#10;2. 執行 python ..."></textarea></label>
+            <label>程式碼 / 指令<textarea class="code-input" id="code" rows="6" required placeholder="python script.py"></textarea></label>
+            <label>標籤<input id="tags" placeholder="terminal, pandas, automation" /></label>
+            <button class="primary-action" id="saveButton" type="submit">保存</button>
+            <button class="secondary-action" id="cancelEditButton" type="button" hidden>取消編輯</button>
+          </form>
+        </aside>
+
+        <section class="library" aria-label="已保存腳本">
+          <header class="library-header">
+            <div>
+              <p class="eyebrow" id="countLabel">0 筆資料</p>
+              <h2>我的常用流程</h2>
+            </div>
+            <label class="search-box">搜尋<input id="query" placeholder="檔名、標籤、指令內容" /></label>
+          </header>
+
+          <div class="library-grid">
+            <div class="script-list" id="scriptList"></div>
+            <article class="detail-panel" id="detailPanel"></article>
+          </div>
+
+          <p class="status-line" id="status" role="status">準備好了</p>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const storageKey = "python-script-vault-records";
+      const starterScripts = [
+        {
+          "id": "uploaded-shift-srt-py",
+          "title": "批量調整 SRT/VTT 字幕時間軸",
+          "filename": "shift_srt.py",
+          "purpose": "批量將同一資料夾內的 .srt 與 .vtt 字幕時間往前調整指定秒數。預設 OFFSET_SECONDS = 1.30，程式會把所有時間碼減去 1.30 秒，輸出到「字幕修正完成」資料夾。",
+          "steps": "1. 把 shift_srt.py 放到含有 .srt 或 .vtt 字幕檔的資料夾\n2. 依需要修改 OFFSET_SECONDS，例如 1.30 代表整體往前 1.30 秒\n3. 開啟終端機，cd 到該資料夾\n4. 執行 `python3 shift_srt.py`\n5. 到「字幕修正完成」資料夾查看修正後的字幕檔",
+          "code": "import re\nimport os\nimport glob\n\n# ====== 設定區 ======\nOFFSET_SECONDS = 1.30\nINPUT_FOLDER = \".\"\nOUTPUT_FOLDER = \"字幕修正完成\"\n# ====================\n\nos.makedirs(OUTPUT_FOLDER, exist_ok=True)\noffset_ms = int(round(OFFSET_SECONDS * 1000))\n\ndef time_to_ms(h, m, s, ms):\n    return (int(h)*3600 + int(m)*60 + int(s)) * 1000 + int(ms)\n\ndef ms_to_time(total_ms, sep):\n    if total_ms < 0:\n        total_ms = 0\n    h = total_ms // 3600000\n    m = (total_ms % 3600000) // 60000\n    s = (total_ms % 60000) // 1000\n    ms = total_ms % 1000\n    return f\"{h:02d}:{m:02d}:{s:02d}{sep}{ms:03d}\"\n\npattern = re.compile(r\"(\\d{2}):(\\d{2}):(\\d{2})([,.])(\\d{3})\")\n\ndef shift_line(line):\n    def replacer(match):\n        h, m, s, sep, ms = match.groups()\n        total = time_to_ms(h, m, s, ms) - offset_ms\n        return ms_to_time(total, sep)\n    return pattern.sub(replacer, line)\n\nfiles = glob.glob(os.path.join(INPUT_FOLDER, \"*.srt\")) + \\\n        glob.glob(os.path.join(INPUT_FOLDER, \"*.vtt\"))\n\nif not files:\n    print(\"⚠️ 找不到任何 .srt 或 .vtt 檔案\")\nelse:\n    for filepath in files:\n        filename = os.path.basename(filepath)\n        with open(filepath, \"r\", encoding=\"utf-8\") as f:\n            lines = f.readlines()\n        new_lines = [shift_line(line) for line in lines]\n        output_path = os.path.join(OUTPUT_FOLDER, filename)\n        with open(output_path, \"w\", encoding=\"utf-8\") as f:\n            f.writelines(new_lines)\n        print(f\"✅ 已處理: {filename}\")\n\n    print(f\"\\n🎉 全部完成!已輸出到「{OUTPUT_FOLDER}」資料夾\")",
+          "tags": [
+            "python",
+            "subtitle",
+            "srt",
+            "vtt",
+            "terminal",
+            "batch"
+          ],
+          "createdAt": "2026-07-17T00:00:00.000Z",
+          "updatedAt": "2026-07-17T00:00:00.000Z"
+        },
+        {
+          "id": "legacy-terminal-1",
+          "title": "批量 MP4 轉 MP3",
+          "filename": "批量-mp4-轉-mp3.txt",
+          "purpose": "將資料夾內所有 .mp4 轉為 .mp3 音訊\n\n備註：-q:a 0 為最高音質（VBR），也可改為 -b:a 192k 指定固定位元率。轉換完成後 .mp3 會出現在同一資料夾。\n\n常見錯誤：no matches found: *.mp4\n解法：表示目前資料夾內沒有 .mp4 檔案。請重新確認步驟 3–4，確保 cd 到正確的資料夾，並用 ls *.mp4 驗證\n\n常見錯誤：command not found: ffmpeg\n解法：FFmpeg 尚未安裝。請先在終端機執行：brew install ffmpeg（需先安裝 Homebrew）",
+          "steps": "1. 確認已安裝 FFmpeg：在終端機輸入 `ffmpeg -version`，若顯示版本號即已安裝。若出現「command not found」請先執行 `brew install ffmpeg`\n2. 開啟 Finder，找到存放 .mp4 檔案的資料夾\n3. 開啟終端機（Spotlight 搜尋「終端機」或「Terminal」）\n4. 輸入 `cd `（cd 後面加一個空格），然後把資料夾直接從 Finder 拖進終端機視窗，路徑會自動填入，再按 Enter\n5. 用 `ls *.mp4` 確認終端機看得到 .mp4 檔案（有列出才能執行）\n6. 複製下方指令，貼上後按 Enter，等待轉換完成",
+          "code": "# macOS — 批量轉換所有 .mp4 → .mp3\nfor f in *.mp4; do\n  ffmpeg -i \"$f\" -q:a 0 -map a \"${f%.mp4}.mp3\"\ndone",
+          "tags": [
+            "terminal",
+            "video",
+            "audio",
+            "convert",
+            "batch",
+            "ffmpeg"
+          ],
+          "createdAt": "2026-07-17T00:00:00.000Z",
+          "updatedAt": "2026-07-17T00:00:00.000Z"
+        },
+        {
+          "id": "legacy-terminal-2",
+          "title": "批量 MP3 轉 MP4（靜態封面）",
+          "filename": "批量-mp3-轉-mp4-靜態封面.txt",
+          "purpose": "將 .mp3 加上靜態封面圖合成為 .mp4\n\n備註：封面圖建議尺寸 1280×720 或 1920×1080，寬高必須為偶數，否則會報錯。\n\n常見錯誤：No such file or directory\n解法：找不到封面圖。請確認封面圖與 mp3 在同一資料夾，且檔名完全相符（包含大小寫）\n\n常見錯誤：width/height not divisible by 2\n解法：封面圖寬或高為奇數。請將圖片裁切為偶數尺寸，建議使用 1280×720 或 1920×1080",
+          "steps": "1. 確認已安裝 FFmpeg：輸入 `ffmpeg -version` 確認，若未安裝執行 `brew install ffmpeg`\n2. 將所有 .mp3 與封面圖放在同一個資料夾內\n3. 封面圖命名規則：若每個 mp3 有各自封面，檔名需與 mp3 相同（例：song.mp3 → song.jpg）；若共用一張，命名為 `cover.jpg`\n4. 開啟終端機，輸入 `cd ` 後把資料夾拖入視窗，按 Enter\n5. 用 `ls *.mp3` 確認看得到 .mp3 檔案\n6. 依情況選擇下方指令複製貼上，按 Enter 執行",
+          "code": "# 每個 MP3 有各自同名的 .jpg 封面\nfor f in *.mp3; do\n  ffmpeg -loop 1 -i \"${f%.mp3}.jpg\" -i \"$f\" \\\n  -c:v libx264 -tune stillimage -c:a aac \\\n  -b:a 192k -pix_fmt yuv420p -shortest \\\n  \"${f%.mp3}.mp4\"\ndone\n\n# 所有 MP3 共用同一張 cover.jpg\nfor f in *.mp3; do\n  ffmpeg -loop 1 -i cover.jpg -i \"$f\" \\\n  -c:v libx264 -tune stillimage -c:a aac \\\n  -b:a 192k -pix_fmt yuv420p -shortest \\\n  \"${f%.mp3}.mp4\"\ndone",
+          "tags": [
+            "terminal",
+            "video",
+            "audio",
+            "convert",
+            "batch",
+            "ffmpeg"
+          ],
+          "createdAt": "2026-07-17T00:00:00.000Z",
+          "updatedAt": "2026-07-17T00:00:00.000Z"
+        },
+        {
+          "id": "legacy-terminal-3",
+          "title": "批量重新命名檔案",
+          "filename": "批量重新命名檔案.txt",
+          "purpose": "批量為檔名加上前綴，或移除空格\n\n備註：也可安裝 rename 工具（`brew install rename`）進行更複雜的批量改名。\n\n常見錯誤：no matches found\n解法：資料夾內沒有符合副檔名的檔案，請確認副檔名是否正確（例如是 .MP3 大寫還是 .mp3 小寫）",
+          "steps": "1. 開啟終端機（Spotlight 搜尋「終端機」）\n2. 輸入 `cd ` 後把目標資料夾從 Finder 拖入終端機視窗，按 Enter\n3. 用 `ls` 確認目前在正確的資料夾內\n4. 複製下方適合的指令貼上，按 Enter 執行\n5. 執行後再用 `ls` 確認檔名已更改",
+          "code": "# 加上前綴（例：加上 podcast_）\nfor f in *.mp3; do\n  mv \"$f\" \"podcast_$f\"\ndone\n\n# 移除檔名中的空格（改為底線）\nfor f in *\\ *; do\n  mv \"$f\" \"${f// /_}\"\ndone",
+          "tags": [
+            "terminal",
+            "batch",
+            "shell"
+          ],
+          "createdAt": "2026-07-17T00:00:00.000Z",
+          "updatedAt": "2026-07-17T00:00:00.000Z"
+        },
+        {
+          "id": "legacy-terminal-4",
+          "title": "匯出影片字幕為 .vtt 檔",
+          "filename": "匯出影片字幕為-.vtt-檔.txt",
+          "purpose": "在 Chrome 開發者工具 Console 執行，自動下載字幕檔\n\n備註：執行成功後 Console 會顯示 ✅ 完成！共轉換 N 條字幕。下載的 .vtt 檔可直接用於影片剪輯軟體或字幕工具。\n\n常見錯誤：找不到字幕資料（alert 彈出）\n解法：逐字稿面板尚未展開，或頁面尚未完全載入。請確認字幕列表已顯示在頁面上，再重新執行\n\n常見錯誤：下載沒有反應\n解法：部分瀏覽器會封鎖自動下載，請檢查網址列右側是否有「封鎖下載」提示，點允許即可",
+          "steps": "1. 開啟影片頁面，點擊播放器上的字幕（CC）按鈕開啟字幕\n2. 找到頁面上的「逐字稿」功能並點開（讓字幕列表出現在頁面上）\n3. 在頁面空白處按右鍵 → 選擇「檢查」，或直接按 `Command + Option + I`\n4. 在開發者工具上方點選 Console 分頁\n5. 複製下方程式碼，貼入 Console 輸入框後按 Enter\n6. 瀏覽器會自動下載 `subtitles.vtt` 字幕檔到下載資料夾",
+          "code": "# Chrome Console — 匯出字幕為 .vtt\n(function() {\n  function secondsToVTT(seconds) {\n    const sec = parseFloat(seconds);\n    const hours = Math.floor(sec / 3600);\n    const minutes = Math.floor((sec % 3600) / 60);\n    const secs = Math.floor(sec % 60);\n    const ms = Math.round((sec - Math.floor(sec)) * 1000);\n    return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(secs).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;\n  }\n  const items = document.querySelectorAll('[data-start-time][data-end-time]');\n  if (items.length === 0) { alert('找不到字幕資料，請確認頁面已載入字幕'); return; }\n  let vtt = 'WEBVTT\\n\\n';\n  items.forEach((el, index) => {\n    const start = el.getAttribute('data-start-time');\n    const end = el.getAttribute('data-end-time');\n    const textEl = el.querySelector('.vjs-transcript-text');\n    const text = textEl ? textEl.innerText.trim() : el.innerText.trim();\n    vtt += `${index + 1}\\n${secondsToVTT(start)} --> ${secondsToVTT(end)}\\n${text}\\n\\n`;\n  });\n  const blob = new Blob([vtt], { type: 'text/vtt' });\n  const a = document.createElement('a');\n  a.href = URL.createObjectURL(blob);\n  a.download = 'subtitles.vtt';\n  a.click();\n  console.log(`✅ 完成！共轉換 ${items.length} 條字幕`);\n})();",
+          "tags": [
+            "terminal",
+            "chrome",
+            "convert",
+            "chrome-f12"
+          ],
+          "createdAt": "2026-07-17T00:00:00.000Z",
+          "updatedAt": "2026-07-17T00:00:00.000Z"
+        },
+        {
+          "id": "legacy-terminal-5",
+          "title": "Whisper AI 自動生成影片字幕",
+          "filename": "whisper-ai-自動生成影片字幕.txt",
+          "purpose": "用 subtitle 指令將影片語音轉為 .vtt 字幕，支援自訂模型大小\n\n備註：模型選擇：普通話 AI 課程用 small（約 15–25 分鐘 / 2.5小時影片）；中英混合用 medium（約 30–45 分鐘）。Apple Silicon M 系列比 Intel 快約 2–3 倍。記得插電！\n\n常見錯誤：command not found: subtitle\n解法：全域指令未設定或未套用。請執行 source ~/.zshrc 後再試，或重新執行③設定步驟\n\n常見錯誤：can't open file '.../subtitle.py': No such file or directory\n解法：腳本路徑不對。執行 find ~ -name subtitle.py 找出實際位置，再更新 alias 路徑\n\n常見錯誤：ModuleNotFoundError: No module named 'whisper'\n解法：Whisper 未安裝。執行 pip3 install openai-whisper，或改用 python3 -m pip install openai-whisper\n\n常見錯誤：FP16 is not supported on CPU; using FP32 instead\n解法：正常訊息，不影響結果。表示用 CPU 跑，速度較慢但結果正確，放著等它跑完即可\n\n常見錯誤：❌ 模型名稱錯誤\n解法：模型只能填 tiny / base / small / medium / large，注意全部小寫",
+          "steps": "1. 安裝必要工具（只需一次）：依序執行「① 安裝必要套件」三行指令\n2. 確認 subtitle.py 腳本已放在 `~/字幕校正/` 資料夾內（程式碼在下方「② subtitle.py 完整程式碼」可直接複製）\n3. 設定全域指令（只需一次）：執行「③ 設定全域 subtitle 指令」三行指令\n4. 測試是否成功：執行 `subtitle --help`，看到「找不到檔案：--help」代表成功 ✅\n5. 日常使用：開終端機 → 輸入 `subtitle `（加空格）→ 把影片拖進視窗 → Enter\n6. 等待跑完，字幕會自動存到影片所在資料夾的「字幕輸出」子資料夾，檔名與影片相同",
+          "code": "# ① 安裝必要套件（只需一次）\nbrew install ffmpeg\npip3 install openai-whisper\npip3 install stable-ts\n\n# ② subtitle.py 完整程式碼（存到 ~/字幕校正/subtitle.py）\nimport whisper\nimport re\nimport os\nimport sys\n\n# 檢查輸入\nif len(sys.argv) < 2:\n    print(\"❌ 請輸入影片路徑！用法：subtitle 你的影片.mp4\")\n    print(\"💡 可選模型：subtitle 你的影片.mp4 medium\")\n    sys.exit(1)\n\nVIDEO_PATH = sys.argv[1]\nMODEL_SIZE = sys.argv[2] if len(sys.argv) >= 3 else \"small\"\nOUTPUT_DIR = \"./字幕輸出\"\n\n# 檢查模型名稱是否合法\nVALID_MODELS = [\"tiny\", \"base\", \"small\", \"medium\", \"large\"]\nif MODEL_SIZE not in VALID_MODELS:\n    print(f\"❌ 模型名稱錯誤：{MODEL_SIZE}\")\n    print(f\"💡 可用模型：{', '.join(VALID_MODELS)}\")\n    sys.exit(1)\n\nif not os.path.exists(VIDEO_PATH):\n    print(f\"❌ 找不到檔案：{VIDEO_PATH}\")\n    sys.exit(1)\n\nos.makedirs(OUTPUT_DIR, exist_ok=True)\n\ndef post_process(text):\n    text = re.sub(r'[，。！？、；：\\u201c\\u201d\\u2018\\u2019「」【】…—～·\\.,!?;:\\'\\'\"()\\[\\]{}\\-]', '', text)\n    text = re.sub(r'([\\u4e00-\\u9fff])([\\w])', r'\\1 \\2', text)\n    text = re.sub(r'([\\w])([\\u4e00-\\u9fff])', r'\\1 \\2', text)\n    return re.sub(r' +', ' ', text).strip()\n\ndef format_time(seconds):\n    h = int(seconds // 3600)\n    m = int((seconds % 3600) // 60)\n    s = seconds % 60\n    return f\"{h:02d}:{m:02d}:{s:06.3f}\"\n\nprint(f\"🎬 影片：{VIDEO_PATH}\")\nprint(f\"🤖 使用模型：{MODEL_SIZE}\")\nprint(f\"⬇️  載入模型中...\")\n\nmodel = whisper.load_model(MODEL_SIZE)\n\nprint(f\"✅ 模型載入完成！開始轉錄，請稍候...\")\nprint(\"-\" * 50)\n\nresult = model.transcribe(VIDEO_PATH, language=\"zh\", verbose=False)\n\nbase_name = os.path.splitext(os.path.basename(VIDEO_PATH))[0]\noutput_path = os.path.join(OUTPUT_DIR, f\"{base_name}.vtt\")\n\nwith open(output_path, \"w\", encoding=\"utf-8\") as f:\n    f.write(\"WEBVTT\\n\\n\")\n    for segment in result[\"segments\"]:\n        start = format_time(segment[\"start\"])\n        end = format_time(segment[\"end\"])\n        text = post_process(segment[\"text\"])\n        if text:\n            print(f\"[{start}] {text}\")\n            f.write(f\"{start} --> {end}\\n{text}\\n\\n\")\n\nprint(\"-\" * 50)\nprint(f\"\\n🎉 字幕已儲存：{output_path}\")\n\n# ③ 設定全域 subtitle 指令（只需一次）\necho 'alias subtitle=\"python3 ~/字幕校正/subtitle.py\"' >> ~/.zshrc\nsource ~/.zshrc\nsubtitle --help\n\n# ④ 日常使用：單支影片（最常用）\nsubtitle 影片.mp4              # 預設用 small 模型\nsubtitle 影片.mp4 medium       # 指定用 medium 模型\nsubtitle 影片.mp4 large        # 指定用 large 模型\n\n# ⑤ 批量處理資料夾內所有 .mp4（需先 cd 進資料夾）\n# 步驟一：cd 進影片所在的資料夾（把資料夾拖進終端機）\ncd 影片所在的資料夾路徑\n\n# 步驟二：確認看得到 .mp4 檔案\nls *.mp4\n\n# 步驟三：批量跑全部（一支跑完才會跑下一支）\nfor f in *.mp4; do python3 ~/字幕校正/subtitle.py \"$f\"; done",
+          "tags": [
+            "terminal",
+            "whisper",
+            "video",
+            "audio",
+            "convert"
+          ],
+          "createdAt": "2026-07-17T00:00:00.000Z",
+          "updatedAt": "2026-07-17T00:00:00.000Z"
+        },
+        {
+          "id": "starter-venv",
+          "title": "建立 Python 虛擬環境",
+          "filename": "setup_venv.py",
+          "purpose": "紀錄每次開新專案時要跑的 Terminal 流程，避免重複查詢。",
+          "steps": "1. 進入專案資料夾\n2. 建立 .venv\n3. 啟動環境\n4. 安裝 requirements.txt",
+          "code": "python3 -m venv .venv\nsource .venv/bin/activate\npython -m pip install --upgrade pip\npip install -r requirements.txt",
+          "tags": [
+            "terminal",
+            "venv",
+            "setup"
+          ],
+          "createdAt": "2026-07-17T00:00:00.000Z",
+          "updatedAt": "2026-07-17T00:00:00.000Z"
+        },
+        {
+          "id": "starter-run",
+          "title": "執行單一 Python 檔案",
+          "filename": "run_script.py",
+          "purpose": "保存常用的執行格式，包含帶參數的範例。",
+          "steps": "1. 確認目前位置\n2. 啟動虛擬環境\n3. 執行腳本並帶入參數",
+          "code": "pwd\nsource .venv/bin/activate\npython my_script.py --input data.csv --output result.csv",
+          "tags": [
+            "terminal",
+            "run",
+            "args"
+          ],
+          "createdAt": "2026-07-17T00:00:00.000Z",
+          "updatedAt": "2026-07-17T00:00:00.000Z"
+        }
+      ];
+
+      let scripts = loadScripts();
+      let activeId = scripts[0]?.id || "";
+      let query = "";
+      let editingId = "";
+
+      const fields = {
+        title: document.getElementById("title"),
+        filename: document.getElementById("filename"),
+        purpose: document.getElementById("purpose"),
+        note: document.getElementById("note"),
+        errors: document.getElementById("errors"),
+        steps: document.getElementById("steps"),
+        code: document.getElementById("code"),
+        tags: document.getElementById("tags")
+      };
+
+      function mergeStarterScripts(existing) {
+        const existingIds = new Set(existing.map((script) => script.id));
+        return [
+          ...starterScripts.filter((script) => !existingIds.has(script.id)),
+          ...existing
+        ];
+      }
+
+      function loadScripts() {
+        try {
+          const saved = localStorage.getItem(storageKey);
+          const parsed = saved ? JSON.parse(saved) : [];
+          const merged = mergeStarterScripts(parsed);
+          localStorage.setItem(storageKey, JSON.stringify(merged));
+          return merged;
+        } catch {
+          return starterScripts;
+        }
+      }
+
+      function persist() {
+        localStorage.setItem(storageKey, JSON.stringify(scripts));
+      }
+
+      function splitTags(value) {
+        return value.split(",").map((tag) => tag.trim()).filter(Boolean);
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function formatDate(value) {
+        return new Intl.DateTimeFormat("zh-TW", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(new Date(value));
+      }
+
+      function splitRecordInfo(purpose) {
+        const summary = purpose.split(/\n\n備註：|\n\n常見錯誤：/)[0]?.trim() || "";
+        const noteMatch = purpose.match(/\n\n備註：([\s\S]*?)(?=\n\n常見錯誤：|$)/);
+        const errors = [...purpose.matchAll(/常見錯誤：([\s\S]*?)\n解法：([\s\S]*?)(?=\n\n常見錯誤：|$)/g)].map((match) => ({
+          title: match[1].trim(),
+          fix: match[2].trim()
+        }));
+
+        return {
+          summary,
+          note: noteMatch?.[1]?.trim() || "",
+          errors
+        };
+      }
+
+      function parseErrorDraft(value) {
+        return value
+          .split(/\n{2,}/)
+          .map((block) => block.trim())
+          .filter(Boolean)
+          .map((block) => {
+            const labeled = block.match(/(?:常見錯誤：)?([\s\S]*?)\n(?:解法：)([\s\S]*)/);
+            if (labeled) {
+              return { title: labeled[1].trim(), fix: labeled[2].trim() };
+            }
+            const [title, ...fixParts] = block.split(/\s*(?:=>|→|\|)\s*/);
+            return { title: title.trim(), fix: fixParts.join(" ").trim() };
+          })
+          .filter((error) => error.title || error.fix);
+      }
+
+      function composePurpose(summary, note, errors) {
+        const parts = [summary.trim()];
+        const noteText = note.trim();
+        const parsedErrors = parseErrorDraft(errors);
+        if (noteText) parts.push(`備註：${noteText}`);
+        parsedErrors.forEach((error) => {
+          parts.push(`常見錯誤：${error.title}\n解法：${error.fix}`);
+        });
+        return parts.filter(Boolean).join("\n\n");
+      }
+
+      function infoToErrorDraft(errors) {
+        return errors.map((error) => `常見錯誤：${error.title}\n解法：${error.fix}`).join("\n\n");
+      }
+
+      function setEditingMode(script) {
+        const info = splitRecordInfo(script.purpose || "");
+        editingId = script.id;
+        activeId = script.id;
+        fields.title.value = script.title;
+        fields.filename.value = script.filename;
+        fields.purpose.value = info.summary;
+        fields.note.value = info.note;
+        fields.errors.value = infoToErrorDraft(info.errors);
+        fields.steps.value = script.steps;
+        fields.code.value = script.code;
+        fields.tags.value = script.tags.join(", ");
+        document.getElementById("editBanner").hidden = false;
+        document.getElementById("cancelEditButton").hidden = false;
+        document.getElementById("saveButton").textContent = "更新";
+        setStatus(`正在編輯 ${script.filename}`);
+        render();
+      }
+
+      function clearEditor() {
+        document.getElementById("editor").reset();
+        editingId = "";
+        document.getElementById("editBanner").hidden = true;
+        document.getElementById("cancelEditButton").hidden = true;
+        document.getElementById("saveButton").textContent = "保存";
+      }
+
+      function getFilteredScripts() {
+        const keyword = query.trim().toLowerCase();
+        if (!keyword) return scripts;
+        return scripts.filter((script) =>
+          [script.title, script.filename, script.purpose, script.steps, script.code, script.tags.join(" ")]
+            .join(" ")
+            .toLowerCase()
+            .includes(keyword)
+        );
+      }
+
+      function setStatus(text) {
+        document.getElementById("status").textContent = text;
+      }
+
+      function render() {
+        const filtered = getFilteredScripts();
+        const active = scripts.find((script) => script.id === activeId) || filtered[0] || scripts[0];
+        document.getElementById("countLabel").textContent = `${scripts.length} 筆資料`;
+
+        document.getElementById("scriptList").innerHTML = filtered.length
+          ? filtered
+              .map(
+                (script) => `
+                  <button class="script-row ${active?.id === script.id ? "active" : ""}" data-id="${escapeHtml(script.id)}" type="button">
+                    <span><strong>${escapeHtml(script.title)}</strong><small>${escapeHtml(script.filename)}</small></span>
+                    <time>${formatDate(script.updatedAt)}</time>
+                  </button>
+                `
+              )
+              .join("")
+          : '<div class="empty-state">沒有符合的腳本</div>';
+
+        if (!active) {
+          document.getElementById("detailPanel").innerHTML = '<div class="empty-state">尚未保存任何腳本</div>';
+          return;
+        }
+
+        const info = splitRecordInfo(active.purpose || "");
+        const noteHtml = info.note
+          ? `<details class="info-details"><summary>備註</summary><p>${escapeHtml(info.note)}</p></details>`
+          : "";
+        const errorsHtml = info.errors.length
+          ? `<details class="info-details"><summary>常見錯誤</summary><div class="error-list">${info.errors
+              .map((error) => `<div><strong>${escapeHtml(error.title)}</strong><p>${escapeHtml(error.fix)}</p></div>`)
+              .join("")}</div></details>`
+          : "";
+
+        document.getElementById("detailPanel").innerHTML = `
+          <div class="detail-heading">
+            <div>
+              <p class="eyebrow">${escapeHtml(active.filename)}</p>
+              <h3>${escapeHtml(active.title)}</h3>
+            </div>
+            <div class="detail-actions">
+              <button data-edit="${escapeHtml(active.id)}" type="button">編輯</button>
+              <button data-download="${escapeHtml(active.id)}" type="button">下載檔案</button>
+              <button data-copy="${escapeHtml(active.id)}" type="button">複製</button>
+              <button data-delete="${escapeHtml(active.id)}" type="button">刪除</button>
+            </div>
+          </div>
+          <div class="tag-row">${active.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+          <section class="note-block"><h4>用途</h4><p>${escapeHtml(info.summary || "尚未填寫")}</p></section>
+          <section class="note-block"><h4>步驟</h4><pre>${escapeHtml(active.steps || "尚未填寫")}</pre></section>
+          ${noteHtml}
+          ${errorsHtml}
+          <section class="code-block">
+            <div><h4>程式碼 / 指令</h4><button data-copy="${escapeHtml(active.id)}" type="button">複製程式碼</button></div>
+            <pre>${escapeHtml(active.code)}</pre>
+          </section>
+        `;
+      }
+
+      document.getElementById("uploadButton").addEventListener("click", () => {
+        document.getElementById("fileInput").click();
+      });
+
+      document.getElementById("fileInput").addEventListener("change", async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (!file.name.endsWith(".py")) {
+          setStatus("請上傳 .py 檔案");
+          return;
+        }
+        const code = await file.text();
+        const now = new Date().toISOString();
+        const record = {
+          id: crypto.randomUUID(),
+          title: file.name.replace(/\.py$/i, "").replaceAll("_", " "),
+          filename: file.name,
+          purpose: "",
+          steps: "",
+          code,
+          tags: ["uploaded", "python"],
+          createdAt: now,
+          updatedAt: now
+        };
+        scripts = [record, ...scripts];
+        activeId = record.id;
+        persist();
+        render();
+        setStatus(`已上傳 ${file.name}`);
+        event.target.value = "";
+      });
+
+      document.getElementById("editor").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const now = new Date().toISOString();
+        const title = fields.title.value.trim() || fields.filename.value.trim() || "未命名腳本";
+        const record = {
+          id: crypto.randomUUID(),
+          title,
+          filename: fields.filename.value.trim() || `${title.replaceAll(" ", "_")}.py`,
+          purpose: composePurpose(fields.purpose.value, fields.note.value, fields.errors.value),
+          steps: fields.steps.value.trim(),
+          code: fields.code.value.trim(),
+          tags: splitTags(fields.tags.value),
+          createdAt: now,
+          updatedAt: now
+        };
+        if (editingId) {
+          scripts = scripts.map((script) =>
+            script.id === editingId
+              ? {
+                  ...script,
+                  title: record.title,
+                  filename: record.filename,
+                  purpose: record.purpose,
+                  steps: record.steps,
+                  code: record.code,
+                  tags: record.tags,
+                  updatedAt: now
+                }
+              : script
+          );
+          activeId = editingId;
+          persist();
+          clearEditor();
+          render();
+          setStatus(`已更新 ${record.filename}`);
+          return;
+        }
+        scripts = [record, ...scripts];
+        activeId = record.id;
+        persist();
+        clearEditor();
+        render();
+        setStatus(`已保存 ${record.filename}`);
+      });
+
+      document.getElementById("cancelEditButton").addEventListener("click", () => {
+        clearEditor();
+        setStatus("已取消編輯");
+      });
+
+      document.getElementById("query").addEventListener("input", (event) => {
+        query = event.target.value;
+        render();
+      });
+
+      document.getElementById("scriptList").addEventListener("click", (event) => {
+        const row = event.target.closest("[data-id]");
+        if (!row) return;
+        activeId = row.dataset.id;
+        render();
+      });
+
+      document.getElementById("detailPanel").addEventListener("click", async (event) => {
+        const copyButton = event.target.closest("[data-copy]");
+        const deleteButton = event.target.closest("[data-delete]");
+        const editButton = event.target.closest("[data-edit]");
+        const downloadButton = event.target.closest("[data-download]");
+        if (editButton) {
+          const script = scripts.find((item) => item.id === editButton.dataset.edit);
+          if (script) setEditingMode(script);
+          return;
+        }
+        if (downloadButton) {
+          const script = scripts.find((item) => item.id === downloadButton.dataset.download);
+          if (script) {
+            const blob = new Blob([script.code], {
+              type: script.filename.endsWith(".py") ? "text/x-python" : "text/plain"
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = script.filename || "script.txt";
+            link.click();
+            URL.revokeObjectURL(url);
+            setStatus(`已下載 ${script.filename}`);
+          }
+          return;
+        }
+        if (copyButton) {
+          const script = scripts.find((item) => item.id === copyButton.dataset.copy);
+          if (script) {
+            await navigator.clipboard.writeText(script.code);
+            setStatus("程式碼已複製");
+          }
+        }
+        if (deleteButton) {
+          scripts = scripts.filter((item) => item.id !== deleteButton.dataset.delete);
+          activeId = scripts[0]?.id || "";
+          persist();
+          render();
+          setStatus("已刪除腳本");
+        }
+      });
+
+      document.getElementById("exportButton").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(scripts, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "python-script-vault.json";
+        link.click();
+        URL.revokeObjectURL(url);
+        setStatus("資料已匯出");
+      });
+
+      render();
+    </script>
+  </body>
+</html>
