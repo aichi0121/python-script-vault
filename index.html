@@ -43,6 +43,7 @@
 
       button,
       input,
+      select,
       textarea {
         font: inherit;
       }
@@ -160,6 +161,7 @@
       }
 
       input,
+      select,
       textarea {
         width: 100%;
         border: 1px solid var(--line);
@@ -171,6 +173,7 @@
       }
 
       input:focus,
+      select:focus,
       textarea:focus {
         border-color: var(--accent);
         box-shadow: 0 0 0 3px var(--accent-soft);
@@ -185,6 +188,48 @@
       .code-input,
       pre {
         font-family: "SFMono-Regular", Consolas, monospace;
+      }
+
+      .calculator-panel {
+        display: grid;
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-strong);
+        padding: 16px;
+      }
+
+      .calculator-panel h2 {
+        margin: 5px 0 0;
+        color: var(--ink);
+        font-size: 1.25rem;
+      }
+
+      .calculator-result {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-radius: 8px;
+        background: white;
+        padding: 12px;
+      }
+
+      .calculator-result span {
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+
+      .calculator-result strong {
+        color: var(--accent-strong);
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 1.45rem;
+      }
+
+      .compact-details {
+        margin-top: 0;
+        background: rgba(255, 255, 255, 0.74);
       }
 
       .library {
@@ -480,6 +525,34 @@
             <button class="secondary-action" id="exportButton" type="button">匯出資料</button>
           </div>
 
+          <section class="calculator-panel" aria-label="剪映時間碼計算機">
+            <div>
+              <p class="eyebrow">Timecode Calculator</p>
+              <h2>剪映時間碼計算機</h2>
+            </div>
+            <label>
+              幀率
+              <select id="fpsInput">
+                <option value="23.976">23.976 fps</option>
+                <option value="24">24 fps</option>
+                <option value="25">25 fps</option>
+                <option value="29.97">29.97 fps</option>
+                <option value="30" selected>30 fps</option>
+                <option value="50">50 fps</option>
+                <option value="59.94">59.94 fps</option>
+                <option value="60">60 fps</option>
+              </select>
+            </label>
+            <label>剪映時間碼<input id="timecodeInput" value="00:00:01:13" placeholder="HH:MM:SS:FF" /></label>
+            <div class="calculator-result"><span>ffmpeg 秒數</span><strong id="offsetOutput">1.433</strong></div>
+            <details class="info-details compact-details">
+              <summary>計算細節</summary>
+              <p id="calculationDetails">0 小時 + 0 分 + 1 秒 + 13 幀 / 30 fps = 1.433 秒</p>
+            </details>
+            <button class="secondary-action" id="copySingleCommand" type="button">複製單支測試指令</button>
+            <button class="secondary-action" id="copyBatchCommand" type="button">複製批量處理指令</button>
+          </section>
+
           <form class="editor" id="editor">
             <div class="edit-banner" id="editBanner" hidden>正在編輯既有流程</div>
             <label>標題<input id="title" placeholder="批次重新命名檔案" /></label>
@@ -517,6 +590,26 @@
     <script>
       const storageKey = "python-script-vault-records";
       const starterScripts = [
+        {
+          "id": "sync-timecode-calculator-flow",
+          "title": "音畫/字幕同步：剪映時間碼換算與批量修正",
+          "filename": "sync_video_audio_subtitles.txt",
+          "purpose": "把剪映看到的 HH:MM:SS:FF 時間碼換算成 ffmpeg 可用秒數，先測試單支影片，再批量處理整個資料夾。這個流程也可搭配「批量調整 SRT/VTT 字幕時間軸」一起修正近期影片的音畫與字幕不同步問題。\n\n備註：剪映的最後一段 FF 是幀數，不是毫秒。必須依照影片幀率換算，例如 00:00:01:11 在 30 fps 下是 1 + 11/30 = 1.3667 秒。\n\n常見錯誤：秒數看起來差一點\n解法：請確認剪映專案幀率和原影片幀率是否一致，常見是 23.976、24、25、29.97、30、50、59.94、60 fps。\n\n常見錯誤：影片修正後只剩聲音或不能播放\n解法：先跑單支測試。若原影片編碼不適合 -c:v copy，改成重新編碼影片，例如 -c:v libx264 -preset veryfast -crf 18。",
+          "steps": "1. 在剪映找到音畫或字幕差距，記下 HH:MM:SS:FF\n2. 在網站的「剪映時間碼計算機」選擇幀率，輸入時間碼\n3. 複製單支測試指令，先確認一支影片同步\n4. 確認沒問題後，再複製批量處理指令\n5. 若字幕也不同步，把同一個秒數填進 shift_srt.py 的 OFFSET_SECONDS",
+          "code": "# 單支測試（以 1.43 秒為例）\nffmpeg -i \"第一支影片.mp4\" -c:v copy -af \"atrim=start=1.43,asetpts=PTS-STARTPTS\" -c:a aac -ar 48000 \"測試輸出.mp4\"\n\n# 確認同步後，批量跑全部\nmkdir -p 修正完成\nfor f in *.mp4; do\n  ffmpeg -i \"$f\" -c:v copy -af \"atrim=start=1.43,asetpts=PTS-STARTPTS\" -c:a aac -ar 48000 \"修正完成/${f%.mp4}_修正版.mp4\"\ndone",
+          "tags": [
+            "terminal",
+            "ffmpeg",
+            "video",
+            "audio",
+            "subtitle",
+            "sync",
+            "calculator",
+            "batch"
+          ],
+          "createdAt": "2026-07-19T00:00:00.000Z",
+          "updatedAt": "2026-07-19T00:00:00.000Z"
+        },
         {
           "id": "uploaded-shift-srt-py",
           "title": "批量調整 SRT/VTT 字幕時間軸",
@@ -801,6 +894,59 @@
         document.getElementById("status").textContent = text;
       }
 
+      function getCalculatorState() {
+        const fps = Number.parseFloat(document.getElementById("fpsInput").value) || 30;
+        const parts = document
+          .getElementById("timecodeInput")
+          .value.trim()
+          .split(":")
+          .map((part) => Number.parseInt(part, 10));
+        const hours = parts[0] || 0;
+        const minutes = parts[1] || 0;
+        const seconds = parts[2] || 0;
+        const frames = parts[3] || 0;
+        const offset = hours * 3600 + minutes * 60 + seconds + frames / fps;
+        const rounded = Number.isFinite(offset) ? offset.toFixed(3) : "0.000";
+        return { fps, hours, minutes, seconds, frames, rounded };
+      }
+
+      function getSingleCommand() {
+        const { rounded } = getCalculatorState();
+        return `ffmpeg -i "第一支影片.mp4" -c:v copy -af "atrim=start=${rounded},asetpts=PTS-STARTPTS" -c:a aac -ar 48000 "測試輸出.mp4"`;
+      }
+
+      function getBatchCommand() {
+        const { rounded } = getCalculatorState();
+        return `mkdir -p 修正完成
+for f in *.mp4; do
+  ffmpeg -i "$f" -c:v copy -af "atrim=start=${rounded},asetpts=PTS-STARTPTS" -c:a aac -ar 48000 "修正完成/\${f%.mp4}_修正版.mp4"
+done`;
+      }
+
+      async function copyText(text) {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.left = "-9999px";
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+        }
+        setStatus("指令已複製");
+      }
+
+      function updateCalculator() {
+        const state = getCalculatorState();
+        document.getElementById("offsetOutput").textContent = state.rounded;
+        document.getElementById("calculationDetails").textContent =
+          `${state.hours} 小時 + ${state.minutes} 分 + ${state.seconds} 秒 + ${state.frames} 幀 / ${state.fps} fps = ${state.rounded} 秒`;
+      }
+
       function render() {
         const filtered = getFilteredScripts();
         const active = scripts.find((script) => script.id === activeId) || filtered[0] || scripts[0];
@@ -862,6 +1008,11 @@
       document.getElementById("uploadButton").addEventListener("click", () => {
         document.getElementById("fileInput").click();
       });
+
+      document.getElementById("fpsInput").addEventListener("input", updateCalculator);
+      document.getElementById("timecodeInput").addEventListener("input", updateCalculator);
+      document.getElementById("copySingleCommand").addEventListener("click", () => copyText(getSingleCommand()));
+      document.getElementById("copyBatchCommand").addEventListener("click", () => copyText(getBatchCommand()));
 
       document.getElementById("fileInput").addEventListener("change", async (event) => {
         const file = event.target.files?.[0];
