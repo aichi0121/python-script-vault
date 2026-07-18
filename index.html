@@ -569,7 +569,7 @@
             <label>備註<textarea id="note" rows="3" placeholder="例如：模型選擇、品質建議、檔案命名規則"></textarea></label>
             <label>常見錯誤<textarea id="errors" rows="5" placeholder="no matches found => 確認資料夾內有對應副檔名&#10;&#10;command not found => 先安裝需要的工具"></textarea></label>
             <label>步驟<textarea id="steps" rows="4" placeholder="1. 進入資料夾&#10;2. 執行 python ..."></textarea></label>
-            <label>程式碼 / 指令<textarea class="code-input" id="code" rows="6" required placeholder="python script.py"></textarea></label>
+            <label>程式碼 / 指令<textarea class="code-input" id="code" rows="6" placeholder="python script.py"></textarea></label>
             <label>標籤<input id="tags" placeholder="terminal, pandas, automation" /></label>
             <button class="primary-action" id="saveButton" type="submit">保存</button>
             <button class="secondary-action" id="cancelEditButton" type="button" hidden>取消編輯</button>
@@ -584,36 +584,6 @@
             </div>
             <label class="search-box">搜尋<input id="query" placeholder="檔名、標籤、指令內容" /></label>
           </header>
-
-          <section class="calculator-panel calculator-panel-wide" aria-label="剪映時間碼計算機">
-            <div class="calculator-title">
-              <p class="eyebrow">Timecode Calculator</p>
-              <h2>剪映時間碼計算機</h2>
-            </div>
-            <label>
-              幀率
-              <select id="fpsInput">
-                <option value="23.976">23.976 fps</option>
-                <option value="24">24 fps</option>
-                <option value="25">25 fps</option>
-                <option value="29.97">29.97 fps</option>
-                <option value="30" selected>30 fps</option>
-                <option value="50">50 fps</option>
-                <option value="59.94">59.94 fps</option>
-                <option value="60">60 fps</option>
-              </select>
-            </label>
-            <label>剪映時間碼<input id="timecodeInput" value="00:00:01:13" placeholder="HH:MM:SS:FF" /></label>
-            <div class="calculator-result"><span>ffmpeg 秒數</span><strong id="offsetOutput">1.433</strong></div>
-            <div class="calculator-actions">
-              <button class="secondary-action" id="copySingleCommand" type="button">複製單支測試指令</button>
-              <button class="secondary-action" id="copyBatchCommand" type="button">複製批量處理指令</button>
-            </div>
-            <details class="info-details compact-details">
-              <summary>計算細節</summary>
-              <p id="calculationDetails">0 小時 + 0 分 + 1 秒 + 13 幀 / 30 fps = 1.433 秒</p>
-            </details>
-          </section>
 
           <div class="library-grid">
             <div class="script-list" id="scriptList"></div>
@@ -632,9 +602,9 @@
           "id": "sync-timecode-calculator-flow",
           "title": "音畫/字幕同步：剪映時間碼換算與批量修正",
           "filename": "sync_video_audio_subtitles.txt",
-          "purpose": "把剪映看到的 HH:MM:SS:FF 時間碼換算成 ffmpeg 可用秒數，先測試單支影片，再批量處理整個資料夾。這個流程也可搭配「批量調整 SRT/VTT 字幕時間軸」一起修正近期影片的音畫與字幕不同步問題。\n\n備註：剪映的最後一段 FF 是幀數，不是毫秒。必須依照影片幀率換算，例如 00:00:01:11 在 30 fps 下是 1 + 11/30 = 1.3667 秒。\n\n常見錯誤：秒數看起來差一點\n解法：請確認剪映專案幀率和原影片幀率是否一致，常見是 23.976、24、25、29.97、30、50、59.94、60 fps。\n\n常見錯誤：影片修正後只剩聲音或不能播放\n解法：先跑單支測試。若原影片編碼不適合 -c:v copy，改成重新編碼影片，例如 -c:v libx264 -preset veryfast -crf 18。",
+          "purpose": "把剪映看到的 HH:MM:SS:FF 時間碼換算成 ffmpeg 可用秒數，先測試單支影片，再批量處理整個資料夾。這個流程也可搭配「批量調整 SRT/VTT 字幕時間軸」一起修正近期影片的音畫與字幕不同步問題。\n\n備註：這張卡片的指令由下方「剪映時間碼計算機」即時計算產生，不需要保存固定指令。剪映的最後一段 FF 是幀數，不是毫秒，必須依照影片幀率換算。\n\n常見錯誤：秒數看起來差一點\n解法：請確認剪映專案幀率和原影片幀率是否一致，常見是 23.976、24、25、29.97、30、50、59.94、60 fps。\n\n常見錯誤：影片修正後只剩聲音或不能播放\n解法：先跑單支測試。若原影片編碼不適合 -c:v copy，改成重新編碼影片，例如 -c:v libx264 -preset veryfast -crf 18。",
           "steps": "1. 在剪映找到音畫或字幕差距，記下 HH:MM:SS:FF\n2. 在網站的「剪映時間碼計算機」選擇幀率，輸入時間碼\n3. 複製單支測試指令，先確認一支影片同步\n4. 確認沒問題後，再複製批量處理指令\n5. 若字幕也不同步，把同一個秒數填進 shift_srt.py 的 OFFSET_SECONDS",
-          "code": "# 單支測試（以 1.43 秒為例）\nffmpeg -i \"第一支影片.mp4\" -c:v copy -af \"atrim=start=1.43,asetpts=PTS-STARTPTS\" -c:a aac -ar 48000 \"測試輸出.mp4\"\n\n# 確認同步後，批量跑全部\nmkdir -p 修正完成\nfor f in *.mp4; do\n  ffmpeg -i \"$f\" -c:v copy -af \"atrim=start=1.43,asetpts=PTS-STARTPTS\" -c:a aac -ar 48000 \"修正完成/${f%.mp4}_修正版.mp4\"\ndone",
+          "code": "",
           "tags": [
             "terminal",
             "ffmpeg",
@@ -985,6 +955,14 @@ done`;
           `${state.hours} 小時 + ${state.minutes} 分 + ${state.seconds} 秒 + ${state.frames} 幀 / ${state.fps} fps = ${state.rounded} 秒`;
       }
 
+      function bindCalculator() {
+        document.getElementById("fpsInput").addEventListener("input", updateCalculator);
+        document.getElementById("timecodeInput").addEventListener("input", updateCalculator);
+        document.getElementById("copySingleCommand").addEventListener("click", () => copyText(getSingleCommand()));
+        document.getElementById("copyBatchCommand").addEventListener("click", () => copyText(getBatchCommand()));
+        updateCalculator();
+      }
+
       function render() {
         const filtered = getFilteredScripts();
         const active = scripts.find((script) => script.id === activeId) || filtered[0] || scripts[0];
@@ -1017,6 +995,47 @@ done`;
               .map((error) => `<div><strong>${escapeHtml(error.title)}</strong><p>${escapeHtml(error.fix)}</p></div>`)
               .join("")}</div></details>`
           : "";
+        const calculatorHtml =
+          active.id === "sync-timecode-calculator-flow"
+            ? `<details class="info-details calculator-details">
+                <summary>剪映時間碼計算機</summary>
+                <div class="calculator-panel" aria-label="剪映時間碼計算機">
+                  <label>
+                    幀率
+                    <select id="fpsInput">
+                      <option value="23.976">23.976 fps</option>
+                      <option value="24">24 fps</option>
+                      <option value="25">25 fps</option>
+                      <option value="29.97">29.97 fps</option>
+                      <option value="30" selected>30 fps</option>
+                      <option value="50">50 fps</option>
+                      <option value="59.94">59.94 fps</option>
+                      <option value="60">60 fps</option>
+                    </select>
+                  </label>
+                  <label>剪映時間碼<input id="timecodeInput" value="00:00:01:13" placeholder="HH:MM:SS:FF" /></label>
+                  <div class="calculator-result"><span>ffmpeg 秒數</span><strong id="offsetOutput">1.433</strong></div>
+                  <div class="calculator-actions">
+                    <button class="secondary-action" id="copySingleCommand" type="button">複製單支測試指令</button>
+                    <button class="secondary-action" id="copyBatchCommand" type="button">複製批量處理指令</button>
+                  </div>
+                  <details class="info-details compact-details">
+                    <summary>計算細節</summary>
+                    <p id="calculationDetails">0 小時 + 0 分 + 1 秒 + 13 幀 / 30 fps = 1.433 秒</p>
+                  </details>
+                </div>
+              </details>`
+            : "";
+        const codeHtml = active.code
+          ? `<section class="code-block">
+              <div><h4>程式碼 / 指令</h4><button data-copy="${escapeHtml(active.id)}" type="button">複製程式碼</button></div>
+              <pre>${escapeHtml(active.code)}</pre>
+            </section>`
+          : "";
+        const fileActionsHtml = active.code
+          ? `<button data-download="${escapeHtml(active.id)}" type="button">下載檔案</button>
+              <button data-copy="${escapeHtml(active.id)}" type="button">複製</button>`
+          : "";
 
         document.getElementById("detailPanel").innerHTML = `
           <div class="detail-heading">
@@ -1026,31 +1045,26 @@ done`;
             </div>
             <div class="detail-actions">
               <button data-edit="${escapeHtml(active.id)}" type="button">編輯</button>
-              <button data-download="${escapeHtml(active.id)}" type="button">下載檔案</button>
-              <button data-copy="${escapeHtml(active.id)}" type="button">複製</button>
+              ${fileActionsHtml}
               <button data-delete="${escapeHtml(active.id)}" type="button">刪除</button>
             </div>
           </div>
           <div class="tag-row">${active.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
           <section class="note-block"><h4>用途</h4><p>${escapeHtml(info.summary || "尚未填寫")}</p></section>
           <section class="note-block"><h4>步驟</h4><pre>${escapeHtml(active.steps || "尚未填寫")}</pre></section>
+          ${calculatorHtml}
           ${noteHtml}
           ${errorsHtml}
-          <section class="code-block">
-            <div><h4>程式碼 / 指令</h4><button data-copy="${escapeHtml(active.id)}" type="button">複製程式碼</button></div>
-            <pre>${escapeHtml(active.code)}</pre>
-          </section>
+          ${codeHtml}
         `;
+        if (active.id === "sync-timecode-calculator-flow") {
+          bindCalculator();
+        }
       }
 
       document.getElementById("uploadButton").addEventListener("click", () => {
         document.getElementById("fileInput").click();
       });
-
-      document.getElementById("fpsInput").addEventListener("input", updateCalculator);
-      document.getElementById("timecodeInput").addEventListener("input", updateCalculator);
-      document.getElementById("copySingleCommand").addEventListener("click", () => copyText(getSingleCommand()));
-      document.getElementById("copyBatchCommand").addEventListener("click", () => copyText(getBatchCommand()));
 
       document.getElementById("fileInput").addEventListener("change", async (event) => {
         const file = event.target.files?.[0];
