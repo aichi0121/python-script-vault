@@ -1,1215 +1,4017 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>腳本步驟庫</title>
-    <meta
-      name="description"
-      content="保存 Mac Terminal 指令、Python 腳本與操作步驟的個人資料庫。"
-    />
-    <style>
-      :root {
-        --background: #f5f3ee;
-        --foreground: #1e2528;
-        --muted: #687274;
-        --line: #d9d5ca;
-        --panel: #fffdf8;
-        --panel-strong: #e7f0ec;
-        --accent: #146c5c;
-        --accent-strong: #0c4d42;
-        --accent-soft: #d9ece5;
-        --ink: #171d1f;
-        --code-bg: #101818;
-        --code-text: #e8f5ef;
-        --danger: #9d2f2f;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        min-width: 320px;
-        min-height: 100vh;
-        margin: 0;
-        background:
-          linear-gradient(135deg, rgba(20, 108, 92, 0.1), transparent 34%),
-          linear-gradient(225deg, rgba(194, 82, 48, 0.12), transparent 28%),
-          var(--background);
-        color: var(--foreground);
-        font-family: Arial, Helvetica, sans-serif;
-      }
-
-      button,
-      input,
-      select,
-      textarea {
-        font: inherit;
-      }
-
-      button {
-        cursor: pointer;
-      }
-
-      .shell {
-        min-height: 100vh;
-        padding: 22px;
-      }
-
-      .workspace {
-        display: grid;
-        grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
-        min-height: calc(100vh - 44px);
-        overflow: hidden;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(255, 253, 248, 0.82);
-        box-shadow: 0 22px 70px rgba(31, 37, 35, 0.14);
-      }
-
-      .sidebar {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-        overflow: auto;
-        padding: 24px;
-        border-right: 1px solid var(--line);
-        background: var(--panel);
-      }
-
-      h1,
-      h2,
-      h3 {
-        margin: 0;
-        color: var(--ink);
-        line-height: 1.05;
-      }
-
-      h1 {
-        margin-top: 8px;
-        font-size: clamp(2rem, 5vw, 3.8rem);
-      }
-
-      .brand-block p:not(.eyebrow) {
-        max-width: 30rem;
-        margin: 14px 0 0;
-        color: var(--muted);
-        line-height: 1.7;
-      }
-
-      .eyebrow {
-        margin: 0;
-        color: var(--accent);
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .upload-zone {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-
-      .primary-action,
-      .secondary-action,
-      .detail-actions button,
-      .code-block button {
-        min-height: 42px;
-        border: 1px solid transparent;
-        border-radius: 7px;
-        padding: 0 14px;
-        font-weight: 800;
-      }
-
-      .primary-action {
-        background: var(--accent);
-        color: white;
-      }
-
-      .secondary-action,
-      .detail-actions button,
-      .code-block button {
-        border-color: var(--line);
-        background: white;
-        color: var(--foreground);
-      }
-
-      .editor {
-        display: grid;
-        gap: 12px;
-      }
-
-      .edit-banner {
-        border: 1px solid var(--accent);
-        border-radius: 7px;
-        background: var(--accent-soft);
-        color: var(--accent-strong);
-        padding: 10px 12px;
-        font-size: 0.86rem;
-        font-weight: 800;
-      }
-
-      label {
-        display: grid;
-        gap: 6px;
-        color: var(--muted);
-        font-size: 0.83rem;
-        font-weight: 800;
-      }
-
-      input,
-      select,
-      textarea {
-        width: 100%;
-        border: 1px solid var(--line);
-        border-radius: 7px;
-        background: white;
-        color: var(--foreground);
-        padding: 11px 12px;
-        outline: none;
-      }
-
-      input:focus,
-      select:focus,
-      textarea:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-soft);
-      }
-
-      textarea {
-        min-height: 84px;
-        resize: vertical;
-        line-height: 1.55;
-      }
-
-      .code-input,
-      pre {
-        font-family: "SFMono-Regular", Consolas, monospace;
-      }
-
-      .calculator-panel {
-        display: grid;
-        gap: 12px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel-strong);
-        padding: 16px;
-      }
-
-      .calculator-panel h2 {
-        margin: 5px 0 0;
-        color: var(--ink);
-        font-size: 1.25rem;
-      }
-
-      .calculator-panel-wide {
-        grid-template-columns: minmax(190px, 1fr) minmax(130px, 0.6fr) minmax(180px, 0.85fr) minmax(150px, 0.65fr) minmax(220px, 1fr);
-        align-items: end;
-      }
-
-      .calculator-panel-wide .compact-details {
-        grid-column: 1 / -1;
-      }
-
-      .calculator-title {
-        align-self: center;
-      }
-
-      .calculator-result {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        border-radius: 8px;
-        background: white;
-        padding: 12px;
-      }
-
-      .calculator-result span {
-        color: var(--muted);
-        font-size: 0.82rem;
-        font-weight: 800;
-      }
-
-      .calculator-result strong {
-        color: var(--accent-strong);
-        font-family: "SFMono-Regular", Consolas, monospace;
-        font-size: 1.45rem;
-      }
-
-      .calculator-actions {
-        display: grid;
-        gap: 8px;
-      }
-
-      .calculator-actions button {
-        width: 100%;
-      }
-
-      .compact-details {
-        margin-top: 0;
-        background: rgba(255, 255, 255, 0.74);
-      }
-
-      .library {
-        display: flex;
-        min-width: 0;
-        flex-direction: column;
-        gap: 18px;
-        overflow: hidden;
-        padding: 24px;
-      }
-
-      .library-header {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 18px;
-        align-items: end;
-        justify-content: space-between;
-      }
-
-      .library-header h2 {
-        margin-top: 6px;
-        font-size: clamp(1.8rem, 4vw, 3rem);
-      }
-
-      .search-box {
-        width: min(100%, 360px);
-      }
-
-      .library-grid {
-        display: grid;
-        grid-template-columns: minmax(230px, 0.38fr) minmax(0, 0.62fr);
-        min-height: 0;
-        flex: 1;
-        gap: 18px;
-      }
-
-      .script-list {
-        display: flex;
-        min-height: 0;
-        flex-direction: column;
-        gap: 10px;
-        overflow: auto;
-      }
-
-      .script-row {
-        display: flex;
-        min-height: 74px;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(255, 253, 248, 0.74);
-        padding: 13px;
-        color: var(--foreground);
-        text-align: left;
-      }
-
-      .script-row.active {
-        border-color: var(--accent);
-        background: var(--panel-strong);
-      }
-
-      .script-row strong,
-      .script-row small {
-        display: block;
-      }
-
-      .script-row small,
-      .script-row time {
-        color: var(--muted);
-        font-size: 0.78rem;
-      }
-
-      .detail-panel {
-        min-width: 0;
-        overflow: auto;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
-        padding: 20px;
-      }
-
-      .detail-heading {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        align-items: start;
-        justify-content: space-between;
-      }
-
-      .detail-heading h3 {
-        margin-top: 8px;
-        font-size: clamp(1.5rem, 3vw, 2.25rem);
-      }
-
-      .detail-actions {
-        display: flex;
-        gap: 8px;
-      }
-
-      .detail-actions button:last-child {
-        color: var(--danger);
-      }
-
-      .tag-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin: 18px 0;
-      }
-
-      .tag-row span {
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        background: white;
-        padding: 5px 9px;
-        color: var(--accent-strong);
-        font-size: 0.78rem;
-        font-weight: 800;
-      }
-
-      .note-block,
-      .code-block,
-      .info-details {
-        margin-top: 18px;
-      }
-
-      .note-block h4,
-      .code-block h4 {
-        margin: 0 0 8px;
-        color: var(--muted);
-        font-size: 0.82rem;
-        text-transform: uppercase;
-      }
-
-      .note-block p,
-      .note-block pre {
-        margin: 0;
-        white-space: pre-wrap;
-        color: var(--foreground);
-        line-height: 1.7;
-      }
-
-      .info-details {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: white;
-        padding: 0;
-      }
-
-      .info-details summary {
-        min-height: 46px;
-        padding: 13px 14px;
-        color: var(--accent-strong);
-        font-weight: 800;
-        cursor: pointer;
-      }
-
-      .info-details p {
-        margin: 0;
-        padding: 0 14px 14px;
-        color: var(--foreground);
-        line-height: 1.7;
-        white-space: pre-wrap;
-      }
-
-      .error-list {
-        display: grid;
-        gap: 12px;
-        padding: 0 14px 14px;
-      }
-
-      .error-list div {
-        border-left: 3px solid var(--danger);
-        padding-left: 10px;
-      }
-
-      .error-list strong {
-        display: block;
-        color: var(--danger);
-        font-size: 0.88rem;
-      }
-
-      .error-list p {
-        padding: 4px 0 0;
-      }
-
-      .code-block > div {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .code-block pre {
-        overflow: auto;
-        max-height: 48vh;
-        margin: 0;
-        border-radius: 8px;
-        background: var(--code-bg);
-        color: var(--code-text);
-        line-height: 1.65;
-        padding: 18px;
-        white-space: pre;
-      }
-
-      .status-line {
-        min-height: 24px;
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-
-      .empty-state {
-        display: grid;
-        min-height: 140px;
-        place-items: center;
-        border: 1px dashed var(--line);
-        border-radius: 8px;
-        color: var(--muted);
-        text-align: center;
-      }
-
-      .visually-hidden {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        clip-path: inset(50%);
-        white-space: nowrap;
-      }
-
-      @media (max-width: 980px) {
-        .shell {
-          padding: 0;
-        }
-
-        .workspace {
-          grid-template-columns: 1fr;
-          min-height: 100vh;
-          border: 0;
-          border-radius: 0;
-        }
-
-        .sidebar {
-          border-right: 0;
-          border-bottom: 1px solid var(--line);
-        }
-
-        .library-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .calculator-panel-wide {
-          grid-template-columns: 1fr 1fr;
-        }
-
-        .calculator-title,
-        .calculator-actions,
-        .calculator-panel-wide .compact-details {
-          grid-column: 1 / -1;
-        }
-      }
-
-      @media (max-width: 620px) {
-        .sidebar,
-        .library {
-          padding: 18px;
-        }
-
-        .upload-zone {
-          grid-template-columns: 1fr;
-        }
-
-        .detail-actions,
-        .code-block > div {
-          width: 100%;
-        }
-
-        .detail-actions button,
-        .code-block button {
-          flex: 1;
-        }
-
-        .calculator-panel-wide {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <main class="shell">
-      <section class="workspace">
-        <aside class="sidebar" aria-label="腳本管理">
-          <div class="brand-block">
-            <p class="eyebrow">Mac Terminal / Python</p>
-            <h1>腳本步驟庫</h1>
-            <p>保存你常用的 .py、Terminal 指令、操作步驟與查詢關鍵字。</p>
-          </div>
-
-          <div class="upload-zone">
-            <input class="visually-hidden" id="fileInput" type="file" accept=".py,text/x-python,text/plain" />
-            <button class="primary-action" id="uploadButton" type="button">上傳 .py</button>
-            <button class="secondary-action" id="exportButton" type="button">匯出資料</button>
-          </div>
-
-          <form class="editor" id="editor">
-            <div class="edit-banner" id="editBanner" hidden>正在編輯既有流程</div>
-            <label>標題<input id="title" placeholder="批次重新命名檔案" /></label>
-            <label>檔名<input id="filename" placeholder="rename_files.py" /></label>
-            <label>用途<textarea id="purpose" rows="3" placeholder="這段腳本解決什麼問題"></textarea></label>
-            <label>備註<textarea id="note" rows="3" placeholder="例如：模型選擇、品質建議、檔案命名規則"></textarea></label>
-            <label>常見錯誤<textarea id="errors" rows="5" placeholder="no matches found => 確認資料夾內有對應副檔名&#10;&#10;command not found => 先安裝需要的工具"></textarea></label>
-            <label>步驟<textarea id="steps" rows="4" placeholder="1. 進入資料夾&#10;2. 執行 python ..."></textarea></label>
-            <label>程式碼 / 指令<textarea class="code-input" id="code" rows="6" placeholder="python script.py"></textarea></label>
-            <label>標籤<input id="tags" placeholder="terminal, pandas, automation" /></label>
-            <button class="primary-action" id="saveButton" type="submit">保存</button>
-            <button class="secondary-action" id="cancelEditButton" type="button" hidden>取消編輯</button>
-          </form>
-        </aside>
-
-        <section class="library" aria-label="已保存腳本">
-          <header class="library-header">
-            <div>
-              <p class="eyebrow" id="countLabel">0 筆資料</p>
-              <h2>我的常用流程</h2>
-            </div>
-            <label class="search-box">搜尋<input id="query" placeholder="檔名、標籤、指令內容" /></label>
-          </header>
-
-          <div class="library-grid">
-            <div class="script-list" id="scriptList"></div>
-            <article class="detail-panel" id="detailPanel"></article>
-          </div>
-
-          <p class="status-line" id="status" role="status">準備好了</p>
-        </section>
-      </section>
-    </main>
-
-    <script>
-      const storageKey = "python-script-vault-records";
-      const starterScripts = [
-        {
-          "id": "sync-timecode-calculator-flow",
-          "title": "音畫/字幕同步：剪映時間碼換算與批量修正",
-          "filename": "sync_video_audio_subtitles.txt",
-          "purpose": "把剪映看到的 HH:MM:SS:FF 時間碼換算成 ffmpeg 可用秒數，先測試單支影片，再批量處理整個資料夾。這個流程也可搭配「批量調整 SRT/VTT 字幕時間軸」一起修正近期影片的音畫與字幕不同步問題。\n\n備註：這張卡片的指令由下方「剪映時間碼計算機」即時計算產生，不需要保存固定指令。剪映的最後一段 FF 是幀數，不是毫秒，必須依照影片幀率換算。\n\n常見錯誤：秒數看起來差一點\n解法：請確認剪映專案幀率和原影片幀率是否一致，常見是 23.976、24、25、29.97、30、50、59.94、60 fps。\n\n常見錯誤：影片修正後只剩聲音或不能播放\n解法：先跑單支測試。若原影片編碼不適合 -c:v copy，改成重新編碼影片，例如 -c:v libx264 -preset veryfast -crf 18。",
-          "steps": "1. 在剪映找到音畫或字幕差距，記下 HH:MM:SS:FF\n2. 在網站的「剪映時間碼計算機」選擇幀率，輸入時間碼\n3. 複製單支測試指令，先確認一支影片同步\n4. 確認沒問題後，再複製批量處理指令\n5. 若字幕也不同步，把同一個秒數填進 shift_srt.py 的 OFFSET_SECONDS",
-          "code": "",
-          "tags": [
-            "terminal",
-            "ffmpeg",
-            "video",
-            "audio",
-            "subtitle",
-            "sync",
-            "calculator",
-            "batch"
-          ],
-          "createdAt": "2026-07-19T00:00:00.000Z",
-          "updatedAt": "2026-07-19T00:00:00.000Z"
-        },
-        {
-          "id": "uploaded-shift-srt-py",
-          "title": "批量調整 SRT/VTT 字幕時間軸",
-          "filename": "shift_srt.py",
-          "purpose": "批量將同一資料夾內的 .srt 與 .vtt 字幕時間往前調整指定秒數。預設 OFFSET_SECONDS = 1.30，程式會把所有時間碼減去 1.30 秒，輸出到「字幕修正完成」資料夾。",
-          "steps": "1. 把 shift_srt.py 放到含有 .srt 或 .vtt 字幕檔的資料夾\n2. 依需要修改 OFFSET_SECONDS，例如 1.30 代表整體往前 1.30 秒\n3. 開啟終端機，cd 到該資料夾\n4. 執行 `python3 shift_srt.py`\n5. 到「字幕修正完成」資料夾查看修正後的字幕檔",
-          "code": "import re\nimport os\nimport glob\n\n# ====== 設定區 ======\nOFFSET_SECONDS = 1.30\nINPUT_FOLDER = \".\"\nOUTPUT_FOLDER = \"字幕修正完成\"\n# ====================\n\nos.makedirs(OUTPUT_FOLDER, exist_ok=True)\noffset_ms = int(round(OFFSET_SECONDS * 1000))\n\ndef time_to_ms(h, m, s, ms):\n    return (int(h)*3600 + int(m)*60 + int(s)) * 1000 + int(ms)\n\ndef ms_to_time(total_ms, sep):\n    if total_ms < 0:\n        total_ms = 0\n    h = total_ms // 3600000\n    m = (total_ms % 3600000) // 60000\n    s = (total_ms % 60000) // 1000\n    ms = total_ms % 1000\n    return f\"{h:02d}:{m:02d}:{s:02d}{sep}{ms:03d}\"\n\npattern = re.compile(r\"(\\d{2}):(\\d{2}):(\\d{2})([,.])(\\d{3})\")\n\ndef shift_line(line):\n    def replacer(match):\n        h, m, s, sep, ms = match.groups()\n        total = time_to_ms(h, m, s, ms) - offset_ms\n        return ms_to_time(total, sep)\n    return pattern.sub(replacer, line)\n\nfiles = glob.glob(os.path.join(INPUT_FOLDER, \"*.srt\")) + \\\n        glob.glob(os.path.join(INPUT_FOLDER, \"*.vtt\"))\n\nif not files:\n    print(\"⚠️ 找不到任何 .srt 或 .vtt 檔案\")\nelse:\n    for filepath in files:\n        filename = os.path.basename(filepath)\n        with open(filepath, \"r\", encoding=\"utf-8\") as f:\n            lines = f.readlines()\n        new_lines = [shift_line(line) for line in lines]\n        output_path = os.path.join(OUTPUT_FOLDER, filename)\n        with open(output_path, \"w\", encoding=\"utf-8\") as f:\n            f.writelines(new_lines)\n        print(f\"✅ 已處理: {filename}\")\n\n    print(f\"\\n🎉 全部完成!已輸出到「{OUTPUT_FOLDER}」資料夾\")",
-          "tags": [
-            "python",
-            "subtitle",
-            "srt",
-            "vtt",
-            "terminal",
-            "batch"
-          ],
-          "createdAt": "2026-07-17T00:00:00.000Z",
-          "updatedAt": "2026-07-17T00:00:00.000Z"
-        },
-        {
-          "id": "legacy-terminal-1",
-          "title": "批量 MP4 轉 MP3",
-          "filename": "批量-mp4-轉-mp3.txt",
-          "purpose": "將資料夾內所有 .mp4 轉為 .mp3 音訊\n\n備註：-q:a 0 為最高音質（VBR），也可改為 -b:a 192k 指定固定位元率。轉換完成後 .mp3 會出現在同一資料夾。\n\n常見錯誤：no matches found: *.mp4\n解法：表示目前資料夾內沒有 .mp4 檔案。請重新確認步驟 3–4，確保 cd 到正確的資料夾，並用 ls *.mp4 驗證\n\n常見錯誤：command not found: ffmpeg\n解法：FFmpeg 尚未安裝。請先在終端機執行：brew install ffmpeg（需先安裝 Homebrew）",
-          "steps": "1. 確認已安裝 FFmpeg：在終端機輸入 `ffmpeg -version`，若顯示版本號即已安裝。若出現「command not found」請先執行 `brew install ffmpeg`\n2. 開啟 Finder，找到存放 .mp4 檔案的資料夾\n3. 開啟終端機（Spotlight 搜尋「終端機」或「Terminal」）\n4. 輸入 `cd `（cd 後面加一個空格），然後把資料夾直接從 Finder 拖進終端機視窗，路徑會自動填入，再按 Enter\n5. 用 `ls *.mp4` 確認終端機看得到 .mp4 檔案（有列出才能執行）\n6. 複製下方指令，貼上後按 Enter，等待轉換完成",
-          "code": "# macOS — 批量轉換所有 .mp4 → .mp3\nfor f in *.mp4; do\n  ffmpeg -i \"$f\" -q:a 0 -map a \"${f%.mp4}.mp3\"\ndone",
-          "tags": [
-            "terminal",
-            "video",
-            "audio",
-            "convert",
-            "batch",
-            "ffmpeg"
-          ],
-          "createdAt": "2026-07-17T00:00:00.000Z",
-          "updatedAt": "2026-07-17T00:00:00.000Z"
-        },
-        {
-          "id": "legacy-terminal-2",
-          "title": "批量 MP3 轉 MP4（靜態封面）",
-          "filename": "批量-mp3-轉-mp4-靜態封面.txt",
-          "purpose": "將 .mp3 加上靜態封面圖合成為 .mp4\n\n備註：封面圖建議尺寸 1280×720 或 1920×1080，寬高必須為偶數，否則會報錯。\n\n常見錯誤：No such file or directory\n解法：找不到封面圖。請確認封面圖與 mp3 在同一資料夾，且檔名完全相符（包含大小寫）\n\n常見錯誤：width/height not divisible by 2\n解法：封面圖寬或高為奇數。請將圖片裁切為偶數尺寸，建議使用 1280×720 或 1920×1080",
-          "steps": "1. 確認已安裝 FFmpeg：輸入 `ffmpeg -version` 確認，若未安裝執行 `brew install ffmpeg`\n2. 將所有 .mp3 與封面圖放在同一個資料夾內\n3. 封面圖命名規則：若每個 mp3 有各自封面，檔名需與 mp3 相同（例：song.mp3 → song.jpg）；若共用一張，命名為 `cover.jpg`\n4. 開啟終端機，輸入 `cd ` 後把資料夾拖入視窗，按 Enter\n5. 用 `ls *.mp3` 確認看得到 .mp3 檔案\n6. 依情況選擇下方指令複製貼上，按 Enter 執行",
-          "code": "# 每個 MP3 有各自同名的 .jpg 封面\nfor f in *.mp3; do\n  ffmpeg -loop 1 -i \"${f%.mp3}.jpg\" -i \"$f\" \\\n  -c:v libx264 -tune stillimage -c:a aac \\\n  -b:a 192k -pix_fmt yuv420p -shortest \\\n  \"${f%.mp3}.mp4\"\ndone\n\n# 所有 MP3 共用同一張 cover.jpg\nfor f in *.mp3; do\n  ffmpeg -loop 1 -i cover.jpg -i \"$f\" \\\n  -c:v libx264 -tune stillimage -c:a aac \\\n  -b:a 192k -pix_fmt yuv420p -shortest \\\n  \"${f%.mp3}.mp4\"\ndone",
-          "tags": [
-            "terminal",
-            "video",
-            "audio",
-            "convert",
-            "batch",
-            "ffmpeg"
-          ],
-          "createdAt": "2026-07-17T00:00:00.000Z",
-          "updatedAt": "2026-07-17T00:00:00.000Z"
-        },
-        {
-          "id": "legacy-terminal-3",
-          "title": "批量重新命名檔案",
-          "filename": "批量重新命名檔案.txt",
-          "purpose": "批量為檔名加上前綴，或移除空格\n\n備註：也可安裝 rename 工具（`brew install rename`）進行更複雜的批量改名。\n\n常見錯誤：no matches found\n解法：資料夾內沒有符合副檔名的檔案，請確認副檔名是否正確（例如是 .MP3 大寫還是 .mp3 小寫）",
-          "steps": "1. 開啟終端機（Spotlight 搜尋「終端機」）\n2. 輸入 `cd ` 後把目標資料夾從 Finder 拖入終端機視窗，按 Enter\n3. 用 `ls` 確認目前在正確的資料夾內\n4. 複製下方適合的指令貼上，按 Enter 執行\n5. 執行後再用 `ls` 確認檔名已更改",
-          "code": "# 加上前綴（例：加上 podcast_）\nfor f in *.mp3; do\n  mv \"$f\" \"podcast_$f\"\ndone\n\n# 移除檔名中的空格（改為底線）\nfor f in *\\ *; do\n  mv \"$f\" \"${f// /_}\"\ndone",
-          "tags": [
-            "terminal",
-            "batch",
-            "shell"
-          ],
-          "createdAt": "2026-07-17T00:00:00.000Z",
-          "updatedAt": "2026-07-17T00:00:00.000Z"
-        },
-        {
-          "id": "legacy-terminal-4",
-          "title": "匯出影片字幕為 .vtt 檔",
-          "filename": "匯出影片字幕為-.vtt-檔.txt",
-          "purpose": "在 Chrome 開發者工具 Console 執行，自動下載字幕檔\n\n備註：執行成功後 Console 會顯示 ✅ 完成！共轉換 N 條字幕。下載的 .vtt 檔可直接用於影片剪輯軟體或字幕工具。\n\n常見錯誤：找不到字幕資料（alert 彈出）\n解法：逐字稿面板尚未展開，或頁面尚未完全載入。請確認字幕列表已顯示在頁面上，再重新執行\n\n常見錯誤：下載沒有反應\n解法：部分瀏覽器會封鎖自動下載，請檢查網址列右側是否有「封鎖下載」提示，點允許即可",
-          "steps": "1. 開啟影片頁面，點擊播放器上的字幕（CC）按鈕開啟字幕\n2. 找到頁面上的「逐字稿」功能並點開（讓字幕列表出現在頁面上）\n3. 在頁面空白處按右鍵 → 選擇「檢查」，或直接按 `Command + Option + I`\n4. 在開發者工具上方點選 Console 分頁\n5. 複製下方程式碼，貼入 Console 輸入框後按 Enter\n6. 瀏覽器會自動下載 `subtitles.vtt` 字幕檔到下載資料夾",
-          "code": "# Chrome Console — 匯出字幕為 .vtt\n(function() {\n  function secondsToVTT(seconds) {\n    const sec = parseFloat(seconds);\n    const hours = Math.floor(sec / 3600);\n    const minutes = Math.floor((sec % 3600) / 60);\n    const secs = Math.floor(sec % 60);\n    const ms = Math.round((sec - Math.floor(sec)) * 1000);\n    return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(secs).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;\n  }\n  const items = document.querySelectorAll('[data-start-time][data-end-time]');\n  if (items.length === 0) { alert('找不到字幕資料，請確認頁面已載入字幕'); return; }\n  let vtt = 'WEBVTT\\n\\n';\n  items.forEach((el, index) => {\n    const start = el.getAttribute('data-start-time');\n    const end = el.getAttribute('data-end-time');\n    const textEl = el.querySelector('.vjs-transcript-text');\n    const text = textEl ? textEl.innerText.trim() : el.innerText.trim();\n    vtt += `${index + 1}\\n${secondsToVTT(start)} --> ${secondsToVTT(end)}\\n${text}\\n\\n`;\n  });\n  const blob = new Blob([vtt], { type: 'text/vtt' });\n  const a = document.createElement('a');\n  a.href = URL.createObjectURL(blob);\n  a.download = 'subtitles.vtt';\n  a.click();\n  console.log(`✅ 完成！共轉換 ${items.length} 條字幕`);\n})();",
-          "tags": [
-            "terminal",
-            "chrome",
-            "convert",
-            "chrome-f12"
-          ],
-          "createdAt": "2026-07-17T00:00:00.000Z",
-          "updatedAt": "2026-07-17T00:00:00.000Z"
-        },
-        {
-          "id": "legacy-terminal-5",
-          "title": "Whisper AI 自動生成影片字幕",
-          "filename": "whisper-ai-自動生成影片字幕.txt",
-          "purpose": "用 subtitle 指令將影片語音轉為 .vtt 字幕，支援自訂模型大小\n\n備註：模型選擇：普通話 AI 課程用 small（約 15–25 分鐘 / 2.5小時影片）；中英混合用 medium（約 30–45 分鐘）。Apple Silicon M 系列比 Intel 快約 2–3 倍。記得插電！\n\n常見錯誤：command not found: subtitle\n解法：全域指令未設定或未套用。請執行 source ~/.zshrc 後再試，或重新執行③設定步驟\n\n常見錯誤：can't open file '.../subtitle.py': No such file or directory\n解法：腳本路徑不對。執行 find ~ -name subtitle.py 找出實際位置，再更新 alias 路徑\n\n常見錯誤：ModuleNotFoundError: No module named 'whisper'\n解法：Whisper 未安裝。執行 pip3 install openai-whisper，或改用 python3 -m pip install openai-whisper\n\n常見錯誤：FP16 is not supported on CPU; using FP32 instead\n解法：正常訊息，不影響結果。表示用 CPU 跑，速度較慢但結果正確，放著等它跑完即可\n\n常見錯誤：❌ 模型名稱錯誤\n解法：模型只能填 tiny / base / small / medium / large，注意全部小寫",
-          "steps": "1. 安裝必要工具（只需一次）：依序執行「① 安裝必要套件」三行指令\n2. 確認 subtitle.py 腳本已放在 `~/字幕校正/` 資料夾內（程式碼在下方「② subtitle.py 完整程式碼」可直接複製）\n3. 設定全域指令（只需一次）：執行「③ 設定全域 subtitle 指令」三行指令\n4. 測試是否成功：執行 `subtitle --help`，看到「找不到檔案：--help」代表成功 ✅\n5. 日常使用：開終端機 → 輸入 `subtitle `（加空格）→ 把影片拖進視窗 → Enter\n6. 等待跑完，字幕會自動存到影片所在資料夾的「字幕輸出」子資料夾，檔名與影片相同",
-          "code": "# ① 安裝必要套件（只需一次）\nbrew install ffmpeg\npip3 install openai-whisper\npip3 install stable-ts\n\n# ② subtitle.py 完整程式碼（存到 ~/字幕校正/subtitle.py）\nimport whisper\nimport re\nimport os\nimport sys\n\n# 檢查輸入\nif len(sys.argv) < 2:\n    print(\"❌ 請輸入影片路徑！用法：subtitle 你的影片.mp4\")\n    print(\"💡 可選模型：subtitle 你的影片.mp4 medium\")\n    sys.exit(1)\n\nVIDEO_PATH = sys.argv[1]\nMODEL_SIZE = sys.argv[2] if len(sys.argv) >= 3 else \"small\"\nOUTPUT_DIR = \"./字幕輸出\"\n\n# 檢查模型名稱是否合法\nVALID_MODELS = [\"tiny\", \"base\", \"small\", \"medium\", \"large\"]\nif MODEL_SIZE not in VALID_MODELS:\n    print(f\"❌ 模型名稱錯誤：{MODEL_SIZE}\")\n    print(f\"💡 可用模型：{', '.join(VALID_MODELS)}\")\n    sys.exit(1)\n\nif not os.path.exists(VIDEO_PATH):\n    print(f\"❌ 找不到檔案：{VIDEO_PATH}\")\n    sys.exit(1)\n\nos.makedirs(OUTPUT_DIR, exist_ok=True)\n\ndef post_process(text):\n    text = re.sub(r'[，。！？、；：\\u201c\\u201d\\u2018\\u2019「」【】…—～·\\.,!?;:\\'\\'\"()\\[\\]{}\\-]', '', text)\n    text = re.sub(r'([\\u4e00-\\u9fff])([\\w])', r'\\1 \\2', text)\n    text = re.sub(r'([\\w])([\\u4e00-\\u9fff])', r'\\1 \\2', text)\n    return re.sub(r' +', ' ', text).strip()\n\ndef format_time(seconds):\n    h = int(seconds // 3600)\n    m = int((seconds % 3600) // 60)\n    s = seconds % 60\n    return f\"{h:02d}:{m:02d}:{s:06.3f}\"\n\nprint(f\"🎬 影片：{VIDEO_PATH}\")\nprint(f\"🤖 使用模型：{MODEL_SIZE}\")\nprint(f\"⬇️  載入模型中...\")\n\nmodel = whisper.load_model(MODEL_SIZE)\n\nprint(f\"✅ 模型載入完成！開始轉錄，請稍候...\")\nprint(\"-\" * 50)\n\nresult = model.transcribe(VIDEO_PATH, language=\"zh\", verbose=False)\n\nbase_name = os.path.splitext(os.path.basename(VIDEO_PATH))[0]\noutput_path = os.path.join(OUTPUT_DIR, f\"{base_name}.vtt\")\n\nwith open(output_path, \"w\", encoding=\"utf-8\") as f:\n    f.write(\"WEBVTT\\n\\n\")\n    for segment in result[\"segments\"]:\n        start = format_time(segment[\"start\"])\n        end = format_time(segment[\"end\"])\n        text = post_process(segment[\"text\"])\n        if text:\n            print(f\"[{start}] {text}\")\n            f.write(f\"{start} --> {end}\\n{text}\\n\\n\")\n\nprint(\"-\" * 50)\nprint(f\"\\n🎉 字幕已儲存：{output_path}\")\n\n# ③ 設定全域 subtitle 指令（只需一次）\necho 'alias subtitle=\"python3 ~/字幕校正/subtitle.py\"' >> ~/.zshrc\nsource ~/.zshrc\nsubtitle --help\n\n# ④ 日常使用：單支影片（最常用）\nsubtitle 影片.mp4              # 預設用 small 模型\nsubtitle 影片.mp4 medium       # 指定用 medium 模型\nsubtitle 影片.mp4 large        # 指定用 large 模型\n\n# ⑤ 批量處理資料夾內所有 .mp4（需先 cd 進資料夾）\n# 步驟一：cd 進影片所在的資料夾（把資料夾拖進終端機）\ncd 影片所在的資料夾路徑\n\n# 步驟二：確認看得到 .mp4 檔案\nls *.mp4\n\n# 步驟三：批量跑全部（一支跑完才會跑下一支）\nfor f in *.mp4; do python3 ~/字幕校正/subtitle.py \"$f\"; done",
-          "tags": [
-            "terminal",
-            "whisper",
-            "video",
-            "audio",
-            "convert"
-          ],
-          "createdAt": "2026-07-17T00:00:00.000Z",
-          "updatedAt": "2026-07-17T00:00:00.000Z"
-        },
-        {
-          "id": "starter-venv",
-          "title": "建立 Python 虛擬環境",
-          "filename": "setup_venv.py",
-          "purpose": "紀錄每次開新專案時要跑的 Terminal 流程，避免重複查詢。",
-          "steps": "1. 進入專案資料夾\n2. 建立 .venv\n3. 啟動環境\n4. 安裝 requirements.txt",
-          "code": "python3 -m venv .venv\nsource .venv/bin/activate\npython -m pip install --upgrade pip\npip install -r requirements.txt",
-          "tags": [
-            "terminal",
-            "venv",
-            "setup"
-          ],
-          "createdAt": "2026-07-17T00:00:00.000Z",
-          "updatedAt": "2026-07-17T00:00:00.000Z"
-        },
-        {
-          "id": "starter-run",
-          "title": "執行單一 Python 檔案",
-          "filename": "run_script.py",
-          "purpose": "保存常用的執行格式，包含帶參數的範例。",
-          "steps": "1. 確認目前位置\n2. 啟動虛擬環境\n3. 執行腳本並帶入參數",
-          "code": "pwd\nsource .venv/bin/activate\npython my_script.py --input data.csv --output result.csv",
-          "tags": [
-            "terminal",
-            "run",
-            "args"
-          ],
-          "createdAt": "2026-07-17T00:00:00.000Z",
-          "updatedAt": "2026-07-17T00:00:00.000Z"
-        }
-      ];
-
-      let scripts = loadScripts();
-      let activeId = scripts[0]?.id || "";
-      let query = "";
-      let editingId = "";
-
-      const fields = {
-        title: document.getElementById("title"),
-        filename: document.getElementById("filename"),
-        purpose: document.getElementById("purpose"),
-        note: document.getElementById("note"),
-        errors: document.getElementById("errors"),
-        steps: document.getElementById("steps"),
-        code: document.getElementById("code"),
-        tags: document.getElementById("tags")
-      };
-
-      function mergeStarterScripts(existing) {
-        const existingIds = new Set(existing.map((script) => script.id));
-        return [
-          ...starterScripts.filter((script) => !existingIds.has(script.id)),
-          ...existing
-        ];
-      }
-
-      function loadScripts() {
-        try {
-          const saved = localStorage.getItem(storageKey);
-          const parsed = saved ? JSON.parse(saved) : [];
-          const merged = mergeStarterScripts(parsed);
-          localStorage.setItem(storageKey, JSON.stringify(merged));
-          return merged;
-        } catch {
-          return starterScripts;
-        }
-      }
-
-      function persist() {
-        localStorage.setItem(storageKey, JSON.stringify(scripts));
-      }
-
-      function splitTags(value) {
-        return value.split(",").map((tag) => tag.trim()).filter(Boolean);
-      }
-
-      function escapeHtml(value) {
-        return String(value)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      function formatDate(value) {
-        return new Intl.DateTimeFormat("zh-TW", {
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        }).format(new Date(value));
-      }
-
-      function splitRecordInfo(purpose) {
-        const summary = purpose.split(/\n\n備註：|\n\n常見錯誤：/)[0]?.trim() || "";
-        const noteMatch = purpose.match(/\n\n備註：([\s\S]*?)(?=\n\n常見錯誤：|$)/);
-        const errors = [...purpose.matchAll(/常見錯誤：([\s\S]*?)\n解法：([\s\S]*?)(?=\n\n常見錯誤：|$)/g)].map((match) => ({
-          title: match[1].trim(),
-          fix: match[2].trim()
-        }));
-
-        return {
-          summary,
-          note: noteMatch?.[1]?.trim() || "",
-          errors
-        };
-      }
-
-      function parseErrorDraft(value) {
-        return value
-          .split(/\n{2,}/)
-          .map((block) => block.trim())
-          .filter(Boolean)
-          .map((block) => {
-            const labeled = block.match(/(?:常見錯誤：)?([\s\S]*?)\n(?:解法：)([\s\S]*)/);
-            if (labeled) {
-              return { title: labeled[1].trim(), fix: labeled[2].trim() };
-            }
-            const [title, ...fixParts] = block.split(/\s*(?:=>|→|\|)\s*/);
-            return { title: title.trim(), fix: fixParts.join(" ").trim() };
-          })
-          .filter((error) => error.title || error.fix);
-      }
-
-      function composePurpose(summary, note, errors) {
-        const parts = [summary.trim()];
-        const noteText = note.trim();
-        const parsedErrors = parseErrorDraft(errors);
-        if (noteText) parts.push(`備註：${noteText}`);
-        parsedErrors.forEach((error) => {
-          parts.push(`常見錯誤：${error.title}\n解法：${error.fix}`);
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>源澄潤設計事務所｜Doris 的八字路口相談室</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&subset=chinese-traditional&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+ 基礎重置
+══════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+font-family:'Noto Serif TC','PingFang TC','Microsoft JhengHei',serif;
+background:#FAF6F1;
+color:#4A3728;
+min-height:100vh;
+}
+.hidden{display:none!important;}
+
+/* ══════════════════════════════════════
+ 容器
+══════════════════════════════════════ */
+.container{
+max-width:860px;
+margin:0 auto;
+padding:20px 16px 60px;
+}
+
+/* ══════════════════════════════════════
+ Header
+══════════════════════════════════════ */
+.site-header{
+position:relative;
+text-align:center;
+padding:28px 20px 20px;
+border-bottom:1px solid #E8DDD0;
+margin-bottom:24px;
+}
+.site-header h1{
+font-size:1.3rem;
+font-weight:700;
+color:#8B6914;
+letter-spacing:0.05em;
+}
+.site-header p{
+font-size:0.8rem;
+color:#B89C7D;
+margin-top:4px;
+}
+
+/* ══════════════════════════════════════
+ 卡片
+══════════════════════════════════════ */
+.card{
+background:#fff;
+border-radius:16px;
+box-shadow:0 2px 12px rgba(74,55,40,0.08);
+padding:24px;
+margin-bottom:16px;
+}
+
+/* ══════════════════════════════════════
+ 按鈕
+══════════════════════════════════════ */
+.btn{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:6px;
+padding:10px 20px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-family:inherit;
+font-size:0.9rem;
+font-weight:600;
+transition:all 0.2s;
+}
+.btn-primary{background:#D4B896;color:#4A3728;}
+.btn-primary:hover{background:#C4A882;}
+.btn-ghost{background:transparent;color:#8B6914;border:1.5px solid #D4B896;}
+.btn-ghost:hover{background:#FAF6F1;}
+.btn-small{font-size:0.78rem;padding:6px 12px;border-radius:8px;}
+.btn-danger{background:transparent;color:#C0392B;border:1.5px solid #E8A090;font-size:0.75rem;padding:4px 10px;}
+.btn-danger:hover{background:#FFEBEE;}
+.btn-full{width:100%;padding:14px;font-size:1rem;}
+
+/* ══════════════════════════════════════
+ 登入同步
+══════════════════════════════════════ */
+.auth-panel{
+position:absolute;
+right:0;
+top:18px;
+z-index:20;
+}
+.auth-trigger{
+width:42px;
+height:42px;
+border-radius:50%;
+border:1.5px solid #E8DDD0;
+background:#FFFDF8;
+color:#8B6914;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:0;
+cursor:pointer;
+box-shadow:0 2px 10px rgba(74,55,40,0.08);
+transition:all 0.2s;
+overflow:hidden;
+}
+.auth-trigger:hover{background:#FAF6F1;border-color:#D4B896;transform:translateY(-1px);}
+.auth-avatar{
+width:100%;
+height:100%;
+border-radius:50%;
+background:#F4E8D9;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:1rem;
+font-weight:700;
+color:#8B6914;
+overflow:hidden;
+flex-shrink:0;
+}
+.auth-avatar img{width:100%;height:100%;object-fit:cover;}
+.auth-menu{
+position:absolute;
+right:0;
+top:50px;
+width:min(290px,calc(100vw - 32px));
+background:#FFFDF8;
+border:1px solid #E8DDD0;
+border-radius:14px;
+padding:12px 14px;
+display:flex;
+flex-direction:column;
+align-items:stretch;
+gap:12px;
+box-shadow:0 2px 8px rgba(74,55,40,0.05);
+}
+.auth-menu.hidden{display:none;}
+.auth-main{
+display:flex;
+align-items:center;
+gap:10px;
+min-width:0;
+}
+.auth-copy{min-width:0;}
+.auth-title{
+font-size:0.84rem;
+font-weight:700;
+color:#8B6914;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+.auth-subtitle{
+font-size:0.72rem;
+color:#B89C7D;
+margin-top:2px;
+}
+.role-badge{
+display:inline-flex;
+align-items:center;
+padding:2px 8px;
+border-radius:999px;
+background:#FDF5EA;
+border:1px solid #E8DDD0;
+font-size:0.7rem;
+color:#8B6914;
+font-weight:700;
+}
+.auth-actions{
+display:flex;
+align-items:center;
+gap:8px;
+flex-wrap:wrap;
+justify-content:flex-start;
+}
+/* ══════════════════════════════════════
+ 畫面一：客戶列表
+══════════════════════════════════════ */
+.list-topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+.list-topbar h2{font-size:1.1rem;color:#8B6914;}
+.client-card{
+background:#fff;
+border-radius:14px;
+box-shadow:0 2px 8px rgba(74,55,40,0.07);
+padding:16px 20px;
+margin-bottom:12px;
+cursor:pointer;
+transition:all 0.2s;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+.client-card:hover{box-shadow:0 4px 16px rgba(74,55,40,0.14);transform:translateY(-1px);}
+.client-info h3{font-size:1.05rem;font-weight:700;margin-bottom:4px;}
+.client-info p{font-size:0.8rem;color:#999;margin:0;}
+.empty-state{
+text-align:center;
+padding:60px 20px;
+color:#B89C7D;
+}
+.empty-state .emoji{font-size:3rem;margin-bottom:12px;}
+
+/* ══════════════════════════════════════
+ 畫面二：新增客戶
+══════════════════════════════════════ */
+.page-topbar{
+display:flex;
+align-items:center;
+gap:12px;
+margin-bottom:24px;
+}
+.page-topbar h2{font-size:1.1rem;color:#8B6914;}
+.form-group{margin-bottom:18px;}
+.form-group label{
+display:block;
+font-size:0.85rem;
+font-weight:600;
+color:#8B6914;
+margin-bottom:8px;
+}
+.form-group input,
+.form-group select{
+width:100%;
+padding:11px 14px;
+border:1.5px solid #E8DDD0;
+border-radius:10px;
+font-family:inherit;
+font-size:0.95rem;
+color:#4A3728;
+background:#fff;
+outline:none;
+transition:border-color 0.2s;
+}
+.form-group input:focus,
+.form-group select:focus{border-color:#D4B896;}
+.date-row{display:flex;gap:10px;}
+.date-row select{flex:1;}
+.time-row{display:flex;gap:10px;align-items:center;}
+.time-row select{flex:1;}
+.time-sep{font-size:1.2rem;color:#B89C7D;font-weight:700;}
+
+/* 按鈕式單選 */
+.toggle-group{display:flex;gap:8px;flex-wrap:wrap;}
+.toggle-btn{
+padding:9px 20px;
+border:1.5px solid #E8DDD0;
+border-radius:10px;
+background:#fff;
+color:#B89C7D;
+cursor:pointer;
+font-family:inherit;
+font-size:0.9rem;
+transition:all 0.2s;
+}
+.toggle-btn.active{
+border-color:#D4B896;
+background:#FDF5EA;
+color:#8B6914;
+font-weight:700;
+}
+
+/* 農曆對照提示 */
+.lunar-hint{
+font-size:0.78rem;
+color:#B89C7D;
+margin-top:6px;
+min-height:18px;
+}
+
+/* Loading */
+.loading-overlay{
+position:fixed;inset:0;
+background:rgba(250,246,241,0.92);
+display:flex;flex-direction:column;
+align-items:center;justify-content:center;
+z-index:999;
+}
+.loading-spinner{
+width:48px;height:48px;
+border:4px solid #E8DDD0;
+border-top-color:#D4B896;
+border-radius:50%;
+animation:spin 0.8s linear infinite;
+margin-bottom:16px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-overlay p{color:#8B6914;font-size:1rem;}
+
+/* ══════════════════════════════════════
+ 畫面三：報告
+══════════════════════════════════════ */
+.report-topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:24px;
+flex-wrap:wrap;
+gap:10px;
+}
+.gemini-launcher{
+position:fixed;
+right:22px;
+bottom:22px;
+z-index:80;
+width:54px;
+height:54px;
+border-radius:50%;
+border:1.5px solid #D4B896;
+background:#8B6914;
+color:#FFFDF8;
+box-shadow:0 8px 24px rgba(74,55,40,0.24);
+font-size:1.35rem;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+transition:all 0.2s;
+}
+.gemini-launcher:hover{transform:translateY(-2px);background:#6F5410;}
+.gemini-card{
+position:fixed;
+right:22px;
+bottom:86px;
+z-index:81;
+width:min(380px,calc(100vw - 32px));
+max-height:min(680px,calc(100vh - 120px));
+overflow:auto;
+display:none;
+border:1px solid #E8DDD0;
+background:#FFFDF8;
+border-radius:14px;
+padding:16px;
+box-shadow:0 10px 30px rgba(74,55,40,0.2);
+}
+.gemini-card.active{display:block;}
+.gemini-header{
+display:flex;
+align-items:flex-start;
+justify-content:space-between;
+gap:12px;
+margin-bottom:10px;
+}
+.gemini-card h3{
+font-size:0.98rem;
+color:#8B6914;
+margin-bottom:4px;
+}
+.gemini-card p{
+font-size:0.78rem;
+line-height:1.7;
+color:#B89C7D;
+margin-bottom:10px;
+}
+.gemini-close{
+width:30px;
+height:30px;
+border:none;
+border-radius:50%;
+background:#FAF6F1;
+color:#8B6914;
+font-size:1.1rem;
+cursor:pointer;
+}
+.gemini-close:hover{background:#F0E8DC;}
+.gemini-key-box{
+border:1px solid #F0E8DC;
+background:#FFFCF8;
+border-radius:10px;
+padding:10px;
+margin-bottom:12px;
+}
+.gemini-key-box label{
+display:block;
+font-size:0.74rem;
+font-weight:700;
+color:#8B6914;
+margin-bottom:6px;
+}
+.gemini-key-row{
+display:flex;
+gap:6px;
+}
+.gemini-key-row input{
+flex:1;
+min-width:0;
+border:1.5px solid #E8DDD0;
+border-radius:8px;
+padding:8px 9px;
+font-family:inherit;
+font-size:0.78rem;
+color:#4A3728;
+background:#fff;
+outline:none;
+}
+.gemini-key-row input:focus{border-color:#D4B896;}
+.gemini-key-note{
+font-size:0.68rem;
+line-height:1.5;
+color:#B89C7D;
+margin-top:6px;
+}
+.gemini-input{
+width:100%;
+min-height:78px;
+resize:vertical;
+border:1.5px solid #E8DDD0;
+border-radius:10px;
+padding:11px 12px;
+font-family:inherit;
+font-size:0.9rem;
+line-height:1.7;
+color:#4A3728;
+background:#fff;
+outline:none;
+}
+.gemini-input:focus{border-color:#D4B896;}
+.gemini-actions{
+display:flex;
+justify-content:flex-end;
+gap:8px;
+margin-top:10px;
+}
+.gemini-answer{
+display:none;
+margin-top:14px;
+padding:14px 16px;
+border-left:3px solid #D4B896;
+background:#FFFCF8;
+border-radius:0 10px 10px 0;
+font-size:0.9rem;
+line-height:1.85;
+color:#4A3728;
+white-space:pre-wrap;
+}
+.gemini-answer.active{display:block;}
+
+/* 基本訊息表格 */
+.info-table{width:100%;border-collapse:collapse;}
+.info-table td{
+padding:10px 14px;
+border:1px solid #F0E8DC;
+font-size:0.9rem;
+vertical-align:middle;
+}
+.info-table td.label{
+background:#FAF6F1;
+color:#8B6914;
+font-weight:600;
+width:90px;
+}
+.info-table td.value{background:#fff;}
+
+/* 五行圖 */
+.wuxing-wrap{
+display:flex;
+gap:24px;
+align-items:stretch;
+flex-wrap:wrap;
+}
+.wuxing-legend{flex:1;min-width:180px;}
+.wuxing-legend h4{
+font-size:0.82rem;
+color:#8B6914;
+font-weight:700;
+margin-bottom:8px;
+margin-top:12px;
+}
+.wuxing-legend h4:first-child{margin-top:0;}
+.legend-item{
+font-size:0.78rem;
+color:#666;
+margin-bottom:5px;
+display:flex;
+align-items:center;
+gap:7px;
+}
+.legend-dot{
+width:9px;height:9px;
+border-radius:50%;
+flex-shrink:0;
+}
+
+/* 四柱表格 */
+.bazi-wrap{overflow-x:auto;}
+.bazi-table{
+width:100%;
+border-collapse:collapse;
+text-align:center;
+min-width:420px;
+}
+.bazi-table th,.bazi-table td{
+border:1px solid #F0E8DC;
+padding:8px 10px;
+}
+.bazi-table th{
+background:#FAF6F1;
+font-size:0.8rem;
+font-weight:700;
+color:#8B6914;
+}
+.col-label{
+background:#FAF6F1!important;
+font-size:0.78rem;
+font-weight:700;
+color:#8B6914;
+width:52px;
+}
+.rizhu-bg{background:#FFF8F0!important;}
+.tg-char{
+font-size:2rem;
+font-weight:700;
+line-height:1.1;
+display:block;
+}
+.dz-char{
+font-size:2rem;
+font-weight:700;
+line-height:1.1;
+display:block;
+}
+.wx-label{
+font-size:0.7rem;
+color:#aaa;
+display:block;
+margin-top:2px;
+}
+.canggan-cell{font-size:0.78rem;color:#888;letter-spacing:3px;}
+.star-cell{font-size:0.75rem;color:#888;line-height:1.8;}
+.qiyun-row{font-size:0.85rem;color:#8B6914;font-weight:600;text-align:center;padding:10px!important;}
+
+/* 歲／大運獨立表格 */
+.dayun-row-wrap{
+overflow-x:auto;
+margin-top:10px;
+}
+.dayun-row-table{
+border-collapse:collapse;
+text-align:center;
+white-space:nowrap;
+width:100%;
+}
+.dayun-row-table td{
+border:1px solid #F0E8DC;
+padding:8px 14px;
+font-size:0.85rem;
+vertical-align:middle;
+}
+.dayun-row-label{
+background:#FAF6F1;
+font-size:0.78rem;
+font-weight:700;
+color:#8B6914;
+padding:8px 14px!important;
+white-space:nowrap;
+width:48px;
+text-align:center;
+}
+.dayun-row-cur{
+background:#F5EDE0;
+font-weight:700;
+}
+
+/* 大運流年表格 */
+.dayun-wrap{overflow-x:auto;}
+.dayun-table{
+width:100%;
+border-collapse:collapse;
+text-align:center;
+min-width:560px;
+}
+.dayun-table th,.dayun-table td{
+border:1px solid #F0E8DC;
+padding:8px 10px;
+font-size:0.82rem;
+white-space:nowrap;
+}
+.dayun-table th{
+background:#FAF6F1;
+font-size:0.75rem;
+font-weight:700;
+color:#8B6914;
+}
+.row-label-cell{
+background:#FAF6F1;
+font-size:0.75rem;
+font-weight:700;
+color:#8B6914;
+white-space:nowrap;
+padding:8px 12px!important;
+}
+.hl-col{background:#FFF3E0!important;font-weight:700;}
+.gz-big{font-size:1.1rem;font-weight:700;}
+
+/* 分析報告 Tab */
+.tab-bar{
+display:flex;
+border-bottom:2px solid #F0E8DC;
+margin-bottom:20px;
+}
+.tab-btn{
+flex:1;
+padding:12px;
+background:none;
+border:none;
+font-family:inherit;
+font-size:0.9rem;
+color:#B89C7D;
+cursor:pointer;
+border-bottom:3px solid transparent;
+margin-bottom:-2px;
+transition:all 0.2s;
+}
+.tab-btn.active{
+color:#8B6914;
+font-weight:700;
+border-bottom-color:#D4B896;
+}
+
+/* ══ 報告區塊 ══ */
+.report-block{
+border-left:3px solid #D4B896;
+padding:16px 20px;
+margin-bottom:20px;
+background:#FFFCF8;
+border-radius:0 10px 10px 0;
+}
+.report-block h4{
+font-size:0.95rem;
+font-weight:700;
+color:#8B6914;
+margin-bottom:10px;
+}
+.report-block p{
+font-size:0.88rem;
+line-height:1.9;
+color:#5A4030;
+}
+
+/* ══ 知識庫卡片（新增） ══ */
+.kb-card{
+background:#FFFCF8;
+border:1px solid #F0E8DC;
+border-radius:12px;
+padding:16px 20px;
+margin-bottom:16px;
+}
+.kb-card-title{
+font-size:0.9rem;
+font-weight:700;
+color:#8B6914;
+margin-bottom:10px;
+display:flex;
+align-items:center;
+gap:8px;
+}
+.kb-card-title .kb-id{
+font-size:0.7rem;
+background:#F0E8DC;
+color:#8B6914;
+padding:2px 8px;
+border-radius:20px;
+font-weight:600;
+}
+.kb-content{
+font-size:0.85rem;
+line-height:1.9;
+color:#5A4030;
+}
+.kb-content ul{
+padding-left:18px;
+margin-top:6px;
+}
+.kb-content ul li{
+margin-bottom:4px;
+}
+.kb-talk-details{
+margin-top:12px;
+}
+.kb-talk-details p{
+margin:8px 0 0;
+line-height:1.9;
+}
+.report-summary{
+font-size:0.95rem;
+line-height:1.9;
+color:#4A3728;
+font-weight:600;
+}
+.report-summary p{
+margin:0;
+}
+.report-summary p + p{
+margin-top:6px;
+}
+.report-detail{
+margin-top:8px;
+padding:8px 10px;
+background:#FFFDF8;
+border-left:3px solid #ECD9BF;
+border-radius:6px;
+}
+.report-detail p{
+margin:0;
+line-height:1.85;
+}
+.report-detail p + p{
+margin-top:6px;
+}
+.key-token{
+color:#8B6914;
+font-weight:800;
+}
+.key-token-core{
+background:#FFF7E6;
+padding:0 3px;
+border-radius:4px;
+}
+.key-strength{
+color:#B45309;
+font-weight:800;
+}
+.key-wealth{
+color:#B45309;
+font-weight:800;
+}
+.key-career{
+color:#2563EB;
+font-weight:800;
+}
+.key-output{
+color:#15803D;
+font-weight:800;
+}
+.key-love{
+color:#BE185D;
+font-weight:800;
+}
+.key-health{
+color:#15803D;
+font-weight:800;
+}
+.key-water{
+color:#1E40AF;
+font-weight:800;
+}
+.key-resource{
+color:#7C3AED;
+font-weight:800;
+}
+.key-context{
+color:#7C2D12;
+font-weight:800;
+}
+.detail-label{
+color:#7C2D12;
+font-weight:800;
+}
+.teacher-view{
+background:#FDF8EF;
+border-left:3px solid #D4B896;
+padding:10px 12px;
+margin-top:10px;
+border-radius:6px;
+}
+.teacher-view-title{
+font-size:0.78rem;
+font-weight:700;
+color:#8B6914;
+margin-bottom:6px;
+}
+.teacher-view p{
+margin:5px 0 0;
+font-size:0.82rem;
+line-height:1.75;
+}
+.teacher-source{
+margin-top:8px;
+}
+.teacher-source strong{
+display:block;
+font-size:0.82rem;
+margin-bottom:4px;
+}
+.action-list{
+margin:8px 0 0;
+padding-left:18px;
+}
+.action-list li{
+margin:3px 0;
+line-height:1.65;
+}
+.summary-panel{
+background:#FFFDF8;
+border:1px solid #F0E2CF;
+border-radius:8px;
+padding:12px 14px;
+margin-top:10px;
+}
+.summary-panel-title{
+font-size:0.86rem;
+font-weight:700;
+color:#8B6914;
+margin-bottom:6px;
+}
+.focus-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:8px;
+margin-top:10px;
+}
+.zibai-grid{
+display:grid;
+grid-template-columns:repeat(3,minmax(0,1fr));
+gap:8px;
+margin-top:10px;
+}
+.zibai-cell{
+background:#FDF8EF;
+border-left:3px solid #D4B896;
+border-radius:6px;
+padding:10px 11px;
+min-height:92px;
+line-height:1.55;
+}
+.zibai-direction{
+display:block;
+font-size:0.9rem;
+font-weight:900;
+color:#8B6914;
+}
+.zibai-star{
+display:block;
+font-size:0.95rem;
+font-weight:900;
+margin-top:2px;
+}
+.zibai-action{
+display:block;
+font-size:0.72rem;
+margin-top:4px;
+color:#5A4030;
+}
+.combo-board{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:8px;
+margin:8px 0;
+}
+.combo-board-item{
+background:#FFFDF8;
+border:1px solid #F0E2CF;
+border-left:3px solid #D4B896;
+border-radius:7px;
+padding:9px 10px;
+line-height:1.65;
+}
+.combo-board-label{
+display:block;
+font-size:0.72rem;
+font-weight:800;
+color:#8B6914;
+margin-bottom:2px;
+}
+.combo-board-value{
+font-weight:800;
+color:#5A4030;
+}
+.teacher-accordion{
+background:#FDF8EF;
+border-left:4px solid #D4B896;
+border-radius:8px;
+padding:8px 12px;
+margin-top:10px;
+}
+.teacher-accordion summary{
+cursor:pointer;
+font-weight:800;
+color:#8B6914;
+}
+.focus-item{
+background:#FDF8EF;
+border-left:3px solid #D4B896;
+border-radius:6px;
+padding:8px 10px;
+line-height:1.65;
+}
+.focus-label{
+display:block;
+font-size:0.76rem;
+font-weight:700;
+color:#8B6914;
+}
+.focus-value{
+font-weight:800;
+color:#9A3412;
+}
+.tone-wealth{color:#B45309;font-weight:800;}
+.tone-career{color:#2563EB;font-weight:800;}
+.tone-love{color:#BE185D;font-weight:800;}
+.tone-health{color:#15803D;font-weight:800;}
+.tone-warn{color:#B91C1C;font-weight:800;}
+.kb-tag{
+display:inline-block;
+font-size:0.68rem;
+background:#FDF5EA;
+color:#B89C7D;
+border:1px solid #E8DDD0;
+padding:2px 8px;
+border-radius:20px;
+margin:4px 3px 0 0;
+}
+
+/* ══ 雙師比對（新增） ══ */
+.compare-wrap{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+margin-top:10px;
+}
+.compare-box{
+background:#fff;
+border:1px solid #F0E8DC;
+border-radius:10px;
+padding:12px 14px;
+}
+.compare-box-title{
+font-size:0.75rem;
+font-weight:700;
+color:#8B6914;
+margin-bottom:6px;
+padding-bottom:6px;
+border-bottom:1px solid #F0E8DC;
+}
+.compare-box p{
+font-size:0.78rem;
+line-height:1.7;
+color:#5A4030;
+}
+.consensus-box{
+background:linear-gradient(135deg,#FDF5EA,#FAF6F1);
+border:1px solid #E8DDD0;
+border-radius:10px;
+padding:12px 16px;
+margin-top:10px;
+font-size:0.82rem;
+color:#8B6914;
+line-height:1.7;
+}
+.consensus-box strong{
+display:block;
+margin-bottom:4px;
+}
+
+/* ══ 區塊折疊（新增） ══ */
+details.kb-section{
+margin-bottom:16px;
+}
+details.kb-section summary{
+cursor:pointer;
+list-style:none;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:14px 18px;
+background:#FAF6F1;
+border-radius:10px;
+font-size:0.92rem;
+font-weight:700;
+color:#8B6914;
+border:1px solid #F0E8DC;
+transition:background 0.2s;
+}
+details.kb-section summary:hover{background:#F5EDE0;}
+details.kb-section summary::after{
+content:'▼';
+font-size:0.7rem;
+color:#B89C7D;
+transition:transform 0.2s;
+}
+details.kb-section[open] summary::after{
+transform:rotate(180deg);
+}
+details.kb-section .section-body{
+padding:16px 4px 4px;
+}
+
+/* ══ 流日日曆（新增） ══ */
+.liuri-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+margin-top:12px;
+}
+.liuri-card{
+background:#fff;
+border:1px solid #F0E8DC;
+border-radius:10px;
+padding:12px;
+text-align:center;
+}
+.liuri-card-icon{font-size:1.4rem;margin-bottom:4px;}
+.liuri-card-title{
+font-size:0.72rem;
+font-weight:700;
+color:#8B6914;
+margin-bottom:6px;
+}
+.liuri-card-days{
+font-size:0.78rem;
+color:#5A4030;
+line-height:1.8;
+}
+
+/* ══ 警示框（新增） ══ */
+.alert-box{
+background:#FFF8F0;
+border:1px solid #F0D0A0;
+border-left:4px solid #E8A020;
+border-radius:0 10px 10px 0;
+padding:12px 16px;
+margin-bottom:12px;
+font-size:0.84rem;
+color:#7A5020;
+line-height:1.7;
+}
+.alert-box strong{color:#C8620A;}
+
+/* ══ 知識庫載入狀態 ══ */
+.kb-loading{
+text-align:center;
+padding:40px;
+color:#B89C7D;
+font-size:0.9rem;
+}
+.kb-error{
+text-align:center;
+padding:20px;
+color:#C0392B;
+font-size:0.85rem;
+background:#FFEBEE;
+border-radius:10px;
+}
+
+.doris-quote{
+background:linear-gradient(135deg,#FDF5EA,#FAF6F1);
+border:1px solid #E8DDD0;
+border-radius:12px;
+padding:20px 24px;
+text-align:center;
+margin-top:20px;
+}
+.doris-quote p{
+font-size:0.88rem;
+line-height:2;
+color:#8B6914;
+font-style:italic;
+}
+
+/* 區塊標題 */
+.section-title{
+display:flex;
+align-items:center;
+gap:8px;
+font-size:1rem;
+font-weight:700;
+color:#8B6914;
+margin-bottom:16px;
+padding-bottom:8px;
+border-bottom:2px solid #F0E8DC;
+}
+.section-title::before{
+content:'';
+display:block;
+width:4px;height:18px;
+background:#D4B896;
+border-radius:2px;
+}
+
+/* RWD */
+@media(max-width:600px){
+.site-header{padding-right:64px;text-align:left;}
+.auth-panel{right:8px;top:18px;}
+.auth-menu{right:-8px;}
+.auth-actions{width:100%;justify-content:flex-start;}
+.wuxing-wrap{flex-direction:column;}
+.date-row{flex-wrap:wrap;}
+.compare-wrap{grid-template-columns:1fr;}
+.zibai-grid{grid-template-columns:1fr;}
+.liuri-grid{grid-template-columns:repeat(2,1fr);}
+}
+
+/* 列印 */
+@media print{
+.no-print{display:none!important;}
+body{background:#fff;}
+.card{box-shadow:none;border:1px solid #eee;}
+.container{padding:0;}
+.site-header{border-bottom:2px solid #D4B896;}
+details.kb-section{display:block;}
+details.kb-section summary::after{display:none;}
+}
+
+.wx-small{font-size:0.65rem;color:#aaa;margin-left:3px;vertical-align:middle;}
+.ms-label{font-size:0.8rem;color:#7a6652;white-space:pre-line;text-align:center;display:block;}
+.fs-item{display:inline-block;font-size:0.7rem;color:#666;margin:0 2px;}
+.canggan-cell span{font-size:0.85rem;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="loading-overlay hidden">
+<div class="loading-spinner"></div>
+<p id="loading-msg">命盤推算中⋯</p>
+</div>
+
+<div class="container">
+
+<!-- Header -->
+<div class="site-header no-print">
+<h1>源澄潤設計事務所</h1>
+<p>Doris 的八字路口相談室</p>
+<!-- Google 登入與雲端同步 -->
+<div id="auth-panel" class="auth-panel no-print">
+<button id="auth-trigger" class="auth-trigger" type="button" onclick="toggleAuthMenu()" aria-label="帳號與同步設定" aria-expanded="false">
+  <span id="auth-avatar" class="auth-avatar">訪</span>
+</button>
+<div id="auth-menu" class="auth-menu hidden">
+<div class="auth-main">
+  <div class="auth-copy">
+    <div id="auth-title" class="auth-title">尚未登入 Google</div>
+    <div id="auth-subtitle" class="auth-subtitle">未登入時資料只存在這台裝置；登入後可同步到雲端。</div>
+  </div>
+</div>
+<div class="auth-actions">
+  <span id="role-badge" class="role-badge">guest</span>
+  <button id="btn-google-login" class="btn btn-primary btn-small" onclick="signInWithGoogle()">使用 Google 登入</button>
+  <button id="btn-cloud-sync" class="btn btn-ghost btn-small hidden" onclick="syncLocalClientsToCloud()">同步本機資料</button>
+  <button id="btn-google-logout" class="btn btn-ghost btn-small hidden" onclick="signOutGoogle()">登出</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 畫面一：客戶列表 -->
+<div id="screen-list">
+<div class="list-topbar">
+<h2>客戶列表</h2>
+<button class="btn btn-primary" onclick="showScreen('screen-add')">＋ 新增客戶</button>
+</div>
+<div id="client-list-container"></div>
+</div>
+
+<!-- 畫面二：新增客戶 -->
+<div id="screen-add" class="hidden">
+<div class="page-topbar no-print">
+<button class="btn btn-ghost" onclick="showScreen('screen-list')">← 返回</button>
+<h2>新增客戶</h2>
+</div>
+<div class="card">
+<div class="form-group">
+<label>姓名</label>
+<input type="text" id="inp-name" placeholder="請輸入姓名">
+</div>
+<div class="form-group">
+<label>性別</label>
+<div class="toggle-group">
+  <div class="toggle-btn active" data-group="gender" data-val="1" onclick="selectToggle(this)">男</div>
+  <div class="toggle-btn" data-group="gender" data-val="0" onclick="selectToggle(this)">女</div>
+</div>
+</div>
+<div class="form-group">
+<label>出生日期</label>
+<div class="date-row">
+  <input type="number" id="inp-year" placeholder="西元年" min="1900" max="2099" style="flex:2">
+  <select id="inp-month" style="flex:1"></select>
+  <select id="inp-day" style="flex:1"></select>
+</div>
+<div class="lunar-hint" id="lunar-hint"></div>
+</div>
+<div class="form-group">
+<label>出生時辰</label>
+<div class="time-row">
+  <select id="inp-hour" style="flex:1"><option value="">時</option></select>
+  <span class="time-sep">:</span>
+  <select id="inp-min" style="flex:1"><option value="">分</option></select>
+</div>
+</div>
+<button class="btn btn-primary btn-full" onclick="doGenerate()">開始分析</button>
+</div>
+</div>
+
+<!-- 畫面三：報告 -->
+<div id="screen-report" class="hidden">
+
+<div class="report-topbar no-print">
+<button class="btn btn-ghost" onclick="showScreen('screen-list')">← 返回客戶列表</button>
+<div style="display:flex;gap:8px;">
+<button class="btn btn-primary" onclick="window.print()">🖨 下載 PDF</button>
+</div>
+</div>
+
+<!-- 基本訊息 -->
+<div class="card">
+<div class="section-title">基本訊息</div>
+<table class="info-table" id="info-table"><tbody></tbody></table>
+</div>
+
+<!-- 五行圖 -->
+<div class="card">
+<div class="section-title">五行相生相剋</div>
+<div class="wuxing-wrap">
+<div style="flex-shrink:0;min-width:420px;display:flex;align-items:center;justify-content:center;">
+  <img
+    src="https://raw.githubusercontent.com/aichi0121/mingli-paipan/main/wuxing-chart.png"
+    alt="五行相生相剋圖"
+    style="width:420px;max-width:100%;height:auto;object-fit:contain;"
+    onerror="this.style.display='none';document.getElementById('wuxing-fallback').style.display='block';"
+  >
+  <div id="wuxing-fallback" style="display:none;width:420px;height:420px;background:#FAF6F1;border-radius:12px;color:#B89C7D;font-size:0.85rem;text-align:center;padding-top:190px;">圖片載入失敗</div>
+</div>
+<div class="wuxing-legend">
+  <h4>相生關係</h4>
+  <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div>木→火 燃燒木材會產生火</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#E53935"></div>火→土 火燒成灰燼，歸於塵土</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#FB8C00"></div>土→金 黃金誕生於土壤中</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#B8860B"></div>金→水 金屬冷卻並產生水</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1E88E5"></div>水→木 水生植物</div>
+  <h4>相剋關係</h4>
+  <div class="legend-item">木→土 樹木吸收土壤養分</div>
+  <div class="legend-item">火→金 火加熱並熔化金屬</div>
+  <div class="legend-item">土→水 土壤阻擋水</div>
+  <div class="legend-item">金→木 金屬砍倒樹木</div>
+  <div class="legend-item">水→火 水能滅火</div>
+</div>
+</div>
+</div>
+
+<!-- 基本排盤 -->
+<div class="card">
+<div class="section-title">基本排盤</div>
+<div class="bazi-wrap">
+<table class="bazi-table" id="bazi-table">
+  <thead>
+    <tr>
+      <th id="th-shi">時柱</th>
+      <th id="th-ri" class="rizhu-bg">日柱</th>
+      <th id="th-yue">月柱</th>
+      <th id="th-nian">年柱</th>
+      <th class="col-label"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td id="ms-shi"></td>
+      <td class="rizhu-bg" style="font-size:0.75rem;color:#B89C7D">日主</td>
+      <td id="ms-yue"></td>
+      <td id="ms-nian"></td>
+      <td class="col-label">主星</td>
+    </tr>
+    <tr>
+      <td id="tg-shi"></td>
+      <td id="tg-ri" class="rizhu-bg"></td>
+      <td id="tg-yue"></td>
+      <td id="tg-nian"></td>
+      <td class="col-label">天干</td>
+    </tr>
+    <tr>
+      <td id="dz-shi"></td>
+      <td id="dz-ri" class="rizhu-bg"></td>
+      <td id="dz-yue"></td>
+      <td id="dz-nian"></td>
+      <td class="col-label">地支</td>
+    </tr>
+    <tr>
+      <td id="cg-shi" class="canggan-cell"></td>
+      <td id="cg-ri" class="canggan-cell rizhu-bg"></td>
+      <td id="cg-yue" class="canggan-cell"></td>
+      <td id="cg-nian" class="canggan-cell"></td>
+      <td class="col-label">藏干</td>
+    </tr>
+    <tr>
+      <td id="fs-shi" class="star-cell"></td>
+      <td id="fs-ri" class="star-cell rizhu-bg" style="font-size:0.7rem;color:#B89C7D">—</td>
+      <td id="fs-yue" class="star-cell"></td>
+      <td id="fs-nian" class="star-cell"></td>
+      <td class="col-label">副星</td>
+    </tr>
+    <tr>
+      <td colspan="4" id="qiyun-cell" class="qiyun-row"></td>
+      <td class="col-label">起運</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="dayun-row-wrap">
+<table class="dayun-row-table" id="dayun-row-table"></table>
+</div>
+</div>
+
+<!-- 大運流年 -->
+<div class="card">
+<div class="section-title">大運 / 流年</div>
+<div class="dayun-wrap">
+<table class="dayun-table" id="dayun-table"></table>
+</div>
+</div>
+
+<!-- 命理分析報告 -->
+<div class="card">
+<div class="section-title">命理分析報告</div>
+<div class="tab-bar no-print">
+<button id="tab-btn-full" class="tab-btn active" onclick="switchTab('full',this)">📋 完整版</button>
+<button id="tab-btn-quick" class="tab-btn" onclick="switchTab('quick',this)">⚡ 快速版</button>
+</div>
+<div id="tab-full"><div class="kb-loading">知識庫載入中⋯</div></div>
+<div id="tab-quick" class="hidden"><div class="kb-loading">知識庫載入中⋯</div></div>
+</div>
+
+</div><!-- /screen-report -->
+<button id="gemini-launcher" class="gemini-launcher no-print" type="button" onclick="toggleGeminiChat()" aria-label="開啟 Gemini 報告問答">✦</button>
+<div id="gemini-card" class="gemini-card no-print" aria-live="polite">
+  <div class="gemini-header">
+    <div>
+      <h3>💬 Gemini 報告問答</h3>
+      <p>會以目前這份命盤報告為上下文，幫你整理客戶追問時可以怎麼回答。</p>
+    </div>
+    <button class="gemini-close" type="button" onclick="toggleGeminiChat(false)" aria-label="關閉 Gemini 問答">×</button>
+  </div>
+  <div class="gemini-key-box">
+    <label for="gemini-api-key">Gemini API Key</label>
+    <div class="gemini-key-row">
+      <input id="gemini-api-key" type="password" placeholder="貼上自己的 API Key">
+      <button class="btn btn-ghost btn-small" type="button" onclick="saveGeminiKey()">儲存</button>
+    </div>
+    <div id="gemini-key-note" class="gemini-key-note">只存在這台裝置；正式付費版建議改用後端保護。</div>
+  </div>
+  <textarea id="gemini-question" class="gemini-input" placeholder="例如：這個客戶如果問今年工作要注意什麼，我可以怎麼白話回答？"></textarea>
+  <div class="gemini-actions">
+    <button class="btn btn-ghost btn-small" type="button" onclick="clearGeminiAnswer()">清空</button>
+    <button id="btn-ask-gemini" class="btn btn-primary btn-small" type="button" onclick="askGeminiAboutReport()">送出提問</button>
+  </div>
+  <div id="gemini-answer" class="gemini-answer"></div>
+</div>
+</div><!-- /container -->
+
+<script>
+// ══════════════════════════════════════════════
+// 常數
+// ══════════════════════════════════════════════
+const CURRENT_YEAR = new Date().getFullYear();
+const LS_KEY = 'doris_clients';
+const GEMINI_KEY = 'doris_gemini_api_key';
+const GEMINI_MODELS = ['gemini-3.5-flash','gemini-2.5-flash-lite'];
+const GITHUB_RAW = 'https://raw.githubusercontent.com/aichi0121/mingli-paipan/main/data/';
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBHUerxO5VyQA_taGIJxD0vYv1-scdgfM0",
+  authDomain: "mingli-paipan.firebaseapp.com",
+  projectId: "mingli-paipan",
+  storageBucket: "mingli-paipan.firebasestorage.app",
+  messagingSenderId: "197801233550",
+  appId: "1:197801233550:web:6e2b3be96c4d4158a90ddf"
+};
+// 管理員權限以 Firestore 的 users/{uid}.role 為準。
+// 你第一次登入後，到 Firebase Console 把自己的 user 文件 role 改成 "admin"。
+
+let firebaseReady = false;
+let fbAuth = null;
+let fbDb = null;
+let currentUser = null;
+let currentRole = 'guest';
+let currentReportClient = null;
+let cloudClients = [];
+let cloudStatusText = '';
+
+const WX_MAP = {
+甲:'木',乙:'木',丙:'火',丁:'火',戊:'土',
+己:'土',庚:'金',辛:'金',壬:'水',癸:'水',
+子:'水',丑:'土',寅:'木',卯:'木',辰:'土',
+巳:'火',午:'火',未:'土',申:'金',酉:'金',戌:'土',亥:'水'
+};
+const WX_COLOR = {木:'#4CAF50',火:'#E53935',土:'#FB8C00',金:'#B8860B',水:'#1E88E5'};
+
+const SIMP_TO_TRAD = {
+'劫财':'劫財','伤官':'傷官','正财':'正財',
+'偏财':'偏財','七杀':'七殺','枭神':'梟神'
+};
+function toTrad(s){
+if(!s) return s;
+return s.replace(/劫财|伤官|正财|偏财|七杀|枭神/g, m=>SIMP_TO_TRAD[m]||m);
+}
+
+// ══════════════════════════════════════════════
+// Firebase 登入與雲端同步
+// ══════════════════════════════════════════════
+function initFirebase(){
+if(!window.firebase){
+  cloudStatusText = 'Firebase SDK 尚未載入，暫時使用本機資料。';
+  updateAuthUI();
+  return;
+}
+try{
+  if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+  fbAuth = firebase.auth();
+  fbDb = firebase.firestore();
+  firebaseReady = true;
+  fbAuth.onAuthStateChanged(handleAuthStateChanged);
+}catch(err){
+  console.error('Firebase init error:', err);
+  cloudStatusText = 'Firebase 初始化失敗，暫時使用本機資料。';
+  updateAuthUI();
+}
+}
+
+async function handleAuthStateChanged(user){
+currentUser = user || null;
+currentRole = user ? 'tester' : 'guest';
+cloudStatusText = user ? '正在同步雲端資料⋯' : '未登入時資料只存在這台裝置；登入後可同步到雲端。';
+updateAuthUI();
+if(!user){
+  cloudClients = [];
+  renderClientList();
+  return;
+}
+try{
+  await ensureUserProfile(user);
+  await loadCloudClients();
+  cloudStatusText = '已同步雲端資料。';
+}catch(err){
+  console.error('Firebase sync error:', err);
+  cloudStatusText = '雲端同步失敗，請確認 Firestore Rules 是否已貼上。';
+}
+updateAuthUI();
+renderClientList();
+}
+
+async function ensureUserProfile(user){
+if(!fbDb || !user) return;
+const userRef = fbDb.collection('users').doc(user.uid);
+const snap = await userRef.get();
+const savedRole = snap.exists ? snap.data().role : '';
+const role = savedRole || 'tester';
+currentRole = role;
+await userRef.set({
+  uid:user.uid,
+  email:user.email || '',
+  displayName:user.displayName || '',
+  photoURL:user.photoURL || '',
+  role,
+  lastLoginAt:firebase.firestore.FieldValue.serverTimestamp(),
+  updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+  createdAt:snap.exists ? snap.data().createdAt : firebase.firestore.FieldValue.serverTimestamp()
+},{merge:true});
+}
+
+async function loadCloudClients(){
+if(!fbDb || !currentUser) return;
+const snap = await fbDb.collection('users').doc(currentUser.uid)
+  .collection('clients')
+  .orderBy('sortTime','desc')
+  .get();
+cloudClients = snap.docs.map(doc => ({id:doc.id, ...doc.data()}));
+localStorage.setItem(LS_KEY, JSON.stringify(cloudClients));
+}
+
+async function saveClientToCloud(client){
+if(!fbDb || !currentUser || !client) return;
+const sortTime = Number(client.id) || Date.now();
+await fbDb.collection('users').doc(currentUser.uid)
+  .collection('clients').doc(String(client.id))
+  .set({
+    ...client,
+    ownerUid:currentUser.uid,
+    ownerEmail:currentUser.email || '',
+    sortTime,
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    createdAt:client.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true});
+}
+
+async function syncAllClientsToCloud(clients){
+if(!fbDb || !currentUser) return;
+for(const client of clients){
+  await saveClientToCloud(client);
+}
+await loadCloudClients();
+renderClientList();
+}
+
+async function syncLocalClientsToCloud(){
+if(!currentUser){
+  alert('請先登入 Google');
+  return;
+}
+const localClients = JSON.parse(localStorage.getItem(LS_KEY)||'[]');
+if(!localClients.length){
+  alert('目前沒有本機資料需要同步');
+  return;
+}
+setLoading(true,'同步本機資料到雲端⋯');
+try{
+  await syncAllClientsToCloud(localClients);
+  cloudStatusText = '本機資料已同步到雲端。';
+  updateAuthUI();
+  alert('同步完成');
+}catch(err){
+  console.error('Manual sync error:', err);
+  alert('同步失敗，請確認 Firestore 規則是否已設定。');
+}finally{
+  setLoading(false);
+}
+}
+
+async function deleteClientFromCloud(id){
+if(!fbDb || !currentUser || !id) return;
+await fbDb.collection('users').doc(currentUser.uid)
+  .collection('clients').doc(String(id)).delete();
+}
+
+function signInWithGoogle(){
+if(!firebaseReady || !fbAuth){
+  alert('Firebase 尚未載入完成，請重新整理後再試。');
+  return;
+}
+const provider = new firebase.auth.GoogleAuthProvider();
+fbAuth.signInWithPopup(provider).catch(err => {
+  console.error('Google sign-in error:', err);
+  alert('Google 登入失敗：'+err.message);
+});
+}
+
+function signOutGoogle(){
+if(fbAuth) fbAuth.signOut();
+}
+
+function canViewTeacherReport(){
+return currentRole === 'admin' || currentRole === 'teacher';
+}
+
+function roleLabel(){
+return currentRole === 'admin' ? 'admin 完整版' :
+  currentRole === 'teacher' ? 'teacher 完整版' :
+  currentRole === 'tester' ? 'tester 客戶版' : 'guest 單機版';
+}
+
+function toggleAuthMenu(force){
+const menu=document.getElementById('auth-menu');
+const trigger=document.getElementById('auth-trigger');
+if(!menu || !trigger) return;
+const open=typeof force==='boolean' ? force : menu.classList.contains('hidden');
+menu.classList.toggle('hidden',!open);
+trigger.setAttribute('aria-expanded',open?'true':'false');
+}
+
+document.addEventListener('click', e=>{
+const panel=document.getElementById('auth-panel');
+if(panel && !panel.contains(e.target)) toggleAuthMenu(false);
+});
+
+function getGeminiKey(){
+return localStorage.getItem(GEMINI_KEY)||'';
+}
+
+function saveGeminiKey(){
+const input=document.getElementById('gemini-api-key');
+const note=document.getElementById('gemini-key-note');
+if(!input) return;
+const key=input.value.trim();
+if(!key){
+  localStorage.removeItem(GEMINI_KEY);
+  if(note) note.textContent='已清除 API Key。';
+  updateGeminiKeyUI();
+  return;
+}
+localStorage.setItem(GEMINI_KEY,key);
+input.value='';
+if(note) note.textContent='已儲存，可在報告頁使用 Gemini 提問。';
+updateGeminiKeyUI();
+}
+
+function updateGeminiKeyUI(){
+const input=document.getElementById('gemini-api-key');
+const note=document.getElementById('gemini-key-note');
+if(!input || !note) return;
+if(getGeminiKey()){
+  input.placeholder='已儲存 API Key；留空按儲存可清除';
+  note.textContent=note.textContent.includes('已儲存') ? note.textContent : 'Gemini 已可使用。API Key 只存在這台裝置。';
+}else{
+  input.placeholder='貼上自己的 API Key';
+  note.textContent='只存在這台裝置；正式付費版建議改用後端保護。';
+}
+}
+
+function toggleGeminiChat(force){
+const card=document.getElementById('gemini-card');
+const launcher=document.getElementById('gemini-launcher');
+if(!card) return;
+const open=typeof force==='boolean' ? force : !card.classList.contains('active');
+card.classList.toggle('active',open);
+if(launcher) launcher.setAttribute('aria-expanded',open?'true':'false');
+if(open) updateGeminiKeyUI();
+}
+
+function updateAuthUI(){
+const avatar = document.getElementById('auth-avatar');
+const title = document.getElementById('auth-title');
+const subtitle = document.getElementById('auth-subtitle');
+const badge = document.getElementById('role-badge');
+const loginBtn = document.getElementById('btn-google-login');
+const logoutBtn = document.getElementById('btn-google-logout');
+const syncBtn = document.getElementById('btn-cloud-sync');
+if(!avatar || !title || !subtitle || !badge) return;
+if(currentUser){
+  avatar.innerHTML = currentUser.photoURL ? `<img src="${currentUser.photoURL}" alt="">` : (currentUser.displayName || currentUser.email || '已').slice(0,1);
+  title.textContent = currentUser.displayName || currentUser.email || '已登入 Google';
+  subtitle.textContent = cloudStatusText || '已登入，資料會同步到雲端。';
+  loginBtn.classList.add('hidden');
+  logoutBtn.classList.remove('hidden');
+  syncBtn.classList.remove('hidden');
+}else{
+  avatar.textContent = '👤';
+  title.textContent = '尚未登入 Google';
+  subtitle.textContent = cloudStatusText || '未登入時資料只存在這台裝置；登入後可同步到雲端。';
+  loginBtn.classList.remove('hidden');
+  logoutBtn.classList.add('hidden');
+  syncBtn.classList.add('hidden');
+}
+badge.textContent = roleLabel();
+updateGeminiKeyUI();
+}
+
+// ══════════════════════════════════════════════
+// 知識庫快取 & 載入
+// ══════════════════════════════════════════════
+const KB_CACHE = {};
+
+async function fetchKB(fileName){
+if(KB_CACHE[fileName]) return KB_CACHE[fileName];
+try{
+const res = await fetch(GITHUB_RAW + fileName);
+const json = await res.json();
+KB_CACHE[fileName] = json;
+return json;
+}catch(e){
+console.error('KB fetch error:', fileName, e);
+return null;
+}
+}
+
+function getEntry(kb, id){
+if(!kb) return null;
+const arr = kb.entries || kb.comparison_entries || [];
+return arr.find(e=>e.id===id) || null;
+}
+
+function getByCategory(kb, cat){
+if(!kb) return [];
+const arr = kb.entries || kb.comparison_entries || [];
+return arr.filter(e=>e.category===cat || e.sub_category===cat);
+}
+
+// ══════════════════════════════════════════════
+// 新知識庫橋接查詢函式
+// ══════════════════════════════════════════════
+
+// 依 sub_item + query_key 精確查詢
+function queryKB(kb, sub_item, query_key) {
+if (!kb || !kb.knowledge_base) return null;
+return kb.knowledge_base.find(entry => {
+  if (entry.sub_item !== sub_item) return false;
+  return Object.entries(query_key).every(([k, v]) => {
+    return entry.query_key && entry.query_key[k] === v;
+  });
+}) || null;
+}
+
+// 取 content 文字（自動處理空值）
+function qContent(kb, sub_item, query_key, fallback) {
+const entry = queryKB(kb, sub_item, query_key);
+return (entry && entry.content) ? entry.content : (fallback || '');
+}
+
+// 依 section 取得所有項目
+function queryKBSection(kb, section) {
+if (!kb || !kb.knowledge_base) return [];
+return kb.knowledge_base.filter(e => e.section === section);
+}
+
+// ══════════════════════════════════════════════
+// 24節氣
+// ══════════════════════════════════════════════
+const JIEQI_LIST = [
+{name:'小寒',month:1,day:6},{name:'大寒',month:1,day:20},
+{name:'立春',month:2,day:4},{name:'雨水',month:2,day:19},
+{name:'驚蟄',month:3,day:6},{name:'春分',month:3,day:21},
+{name:'清明',month:4,day:5},{name:'穀雨',month:4,day:20},
+{name:'立夏',month:5,day:6},{name:'小滿',month:5,day:21},
+{name:'芒種',month:6,day:6},{name:'夏至',month:6,day:21},
+{name:'小暑',month:7,day:7},{name:'大暑',month:7,day:23},
+{name:'立秋',month:8,day:7},{name:'處暑',month:8,day:23},
+{name:'白露',month:9,day:8},{name:'秋分',month:9,day:23},
+{name:'寒露',month:10,day:8},{name:'霜降',month:10,day:23},
+{name:'立冬',month:11,day:7},{name:'小雪',month:11,day:22},
+{name:'大雪',month:12,day:7},{name:'冬至',month:12,day:22},
+];
+
+function calcJieQi(year,month,day){
+const all=[];
+for(let y=year-1;y<=year+1;y++){
+JIEQI_LIST.forEach(jq=>{all.push({name:jq.name,date:new Date(y,jq.month-1,jq.day)});});
+}
+all.sort((a,b)=>a.date-b.date);
+const birth=new Date(year,month-1,day);
+let qian=null,hou=null;
+for(let i=all.length-1;i>=0;i--){if(all[i].date<birth){qian=all[i];break;}}
+for(let i=0;i<all.length;i++){if(all[i].date>=birth){hou=all[i];break;}}
+const fmt=d=>`${d.getMonth()+1}月${d.getDate()}日`;
+return{
+qian:qian?`${qian.name}（${fmt(qian.date)}）`:'—',
+hou:hou?`${hou.name}（${fmt(hou.date)}）`:'—'
+};
+}
+
+// ══════════════════════════════════════════════
+// 初始化下拉選單
+// ══════════════════════════════════════════════
+function initSelects(){
+const mSel=document.getElementById('inp-month');
+mSel.innerHTML='<option value="">月</option>';
+for(let i=1;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'月';mSel.appendChild(o);}
+const dSel=document.getElementById('inp-day');
+dSel.innerHTML='<option value="">日</option>';
+for(let i=1;i<=31;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'日';dSel.appendChild(o);}
+const hSel=document.getElementById('inp-hour');
+hSel.innerHTML='<option value="">時</option>';
+for(let i=0;i<=23;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');hSel.appendChild(o);}
+const minSel=document.getElementById('inp-min');
+minSel.innerHTML='<option value="">分</option>';
+for(let i=0;i<=59;i++){const o=document.createElement('option');o.value=i;o.textContent=String(i).padStart(2,'0');minSel.appendChild(o);}
+['inp-year','inp-month','inp-day'].forEach(id=>{
+document.getElementById(id).addEventListener('change',updateLunarHint);
+});
+document.getElementById('inp-year').addEventListener('input',updateLunarHint);
+}
+
+function updateLunarHint(){
+const y=parseInt(document.getElementById('inp-year').value);
+const m=parseInt(document.getElementById('inp-month').value);
+const d=parseInt(document.getElementById('inp-day').value);
+const hint=document.getElementById('lunar-hint');
+if(!y||!m||!d||y<1900||y>2100){hint.textContent='';return;}
+try{
+const solar=Solar.fromYmd(y,m,d);
+const lunar=solar.getLunar();
+hint.textContent=`對應農曆：${lunar.getYearInGanZhi()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}`;
+}catch(e){hint.textContent='';}
+}
+
+// ══════════════════════════════════════════════
+// 畫面切換
+// ══════════════════════════════════════════════
+function showScreen(id){
+['screen-list','screen-add','screen-report'].forEach(s=>{
+document.getElementById(s).classList.toggle('hidden',s!==id);
+});
+if(id==='screen-list') renderClientList();
+window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════
+// 按鈕式單選
+// ══════════════════════════════════════════════
+function selectToggle(el){
+const group=el.dataset.group;
+document.querySelectorAll(`[data-group="${group}"]`).forEach(b=>b.classList.remove('active'));
+el.classList.add('active');
+}
+function getToggleVal(group){
+const el=document.querySelector(`[data-group="${group}"].active`);
+return el?el.dataset.val:null;
+}
+
+// ══════════════════════════════════════════════
+// 客戶列表
+// ══════════════════════════════════════════════
+function getLocalClients(){return JSON.parse(localStorage.getItem(LS_KEY)||'[]');}
+function getClients(){return currentUser ? cloudClients : getLocalClients();}
+function saveClients(arr){
+localStorage.setItem(LS_KEY,JSON.stringify(arr));
+if(currentUser){
+  cloudClients = arr;
+  syncAllClientsToCloud(arr).catch(err => {
+    console.error('Cloud save error:', err);
+    cloudStatusText = '雲端儲存失敗，本機資料仍已保留。';
+    updateAuthUI();
+  });
+}
+}
+
+function renderClientList(){
+const clients=getClients();
+const container=document.getElementById('client-list-container');
+if(clients.length===0){
+container.innerHTML=`<div class="empty-state"><div class="emoji">🔮</div><p>尚無客戶資料</p><p style="font-size:0.8rem;margin-top:8px;color:#ccc">點擊右上角「＋ 新增客戶」開始</p></div>`;
+return;
+}
+container.innerHTML=clients.map(c=>`
+<div class="client-card" onclick="loadReport('${c.id}')">
+  <div class="client-info">
+    <h3>${c.name}</h3>
+    <p>${c.year}年${c.month}月${c.day}日・${c.gender}・最後諮詢 ${c.consultDate}</p>
+  </div>
+  <button class="btn btn-danger" onclick="event.stopPropagation();deleteClient('${c.id}')">刪除</button>
+</div>
+`).join('');
+}
+
+async function deleteClient(id){
+if(!confirm('確定要刪除此客戶資料？')) return;
+const nextClients = getClients().filter(c=>c.id!==id);
+localStorage.setItem(LS_KEY,JSON.stringify(nextClients));
+cloudClients = nextClients;
+renderClientList();
+if(currentUser){
+  try{
+    await deleteClientFromCloud(id);
+    cloudStatusText = '已刪除雲端資料。';
+    updateAuthUI();
+  }catch(err){
+    console.error('Cloud delete error:', err);
+    alert('本機已刪除，但雲端刪除失敗，請稍後再試。');
+  }
+}
+}
+
+// ══════════════════════════════════════════════
+// 排盤 API 備援
+// ══════════════════════════════════════════════
+function fetchJsonWithTimeout(url, options={}, timeoutMs=9000){
+const controller=new AbortController();
+const timer=setTimeout(()=>controller.abort(),timeoutMs);
+return fetch(url,{...options,signal:controller.signal})
+  .then(async res=>{
+    const text=await res.text();
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    return JSON.parse(text);
+  })
+  .finally(()=>clearTimeout(timer));
+}
+
+const HIDDEN_STEMS = {
+子:{主气:{天干:'癸'}},
+丑:{余气:{天干:'辛'},中气:{天干:'癸'},主气:{天干:'己'}},
+寅:{余气:{天干:'戊'},中气:{天干:'丙'},主气:{天干:'甲'}},
+卯:{主气:{天干:'乙'}},
+辰:{余气:{天干:'癸'},中气:{天干:'乙'},主气:{天干:'戊'}},
+巳:{余气:{天干:'戊'},中气:{天干:'庚'},主气:{天干:'丙'}},
+午:{中气:{天干:'己'},主气:{天干:'丁'}},
+未:{余气:{天干:'乙'},中气:{天干:'丁'},主气:{天干:'己'}},
+申:{余气:{天干:'戊'},中气:{天干:'壬'},主气:{天干:'庚'}},
+酉:{主气:{天干:'辛'}},
+戌:{余气:{天干:'丁'},中气:{天干:'辛'},主气:{天干:'戊'}},
+亥:{中气:{天干:'甲'},主气:{天干:'壬'}}
+};
+
+const GZ_CYCLE = (() => {
+const stems=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const branches=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+return Array.from({length:60},(_,i)=>stems[i%10]+branches[i%12]);
+})();
+
+function addMonths(date, months){
+const d=new Date(date);
+d.setMonth(d.getMonth()+months);
+return d;
+}
+
+function formatDateLoose(date){
+return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
+}
+
+function getQiYunInfoApprox(year, month, day, gender, yearStem){
+const all=[];
+for(let y=year-1;y<=year+1;y++){
+  JIEQI_LIST.forEach(jq=>all.push({date:new Date(y,jq.month-1,jq.day)}));
+}
+all.sort((a,b)=>a.date-b.date);
+const birth=new Date(year,month-1,day);
+const yangStem=['甲','丙','戊','庚','壬'].includes(yearStem);
+const forward=(gender==='1'&&yangStem)||(gender==='0'&&!yangStem);
+const target=forward
+  ? all.find(jq=>jq.date>birth)
+  : [...all].reverse().find(jq=>jq.date<birth);
+const days=target?Math.max(1,Math.abs(target.date-birth)/86400000):15;
+const age=Math.max(1,Math.round(days/3));
+const startDate=addMonths(birth,Math.round(days*4));
+return {forward,age,startDate};
+}
+
+function buildHiddenStemData(branch, dayStem){
+const raw=HIDDEN_STEMS[branch]||{};
+const out={};
+Object.keys(raw).forEach(key=>{
+  const stem=raw[key]?.['天干']||'';
+  if(!stem) return;
+  out[key]={天干:stem,五行:WX_MAP[stem]||'',十神:toTrad(getShishen(dayStem,stem))};
+});
+return out;
+}
+
+function buildPillarData(gz, dayStem, isDay=false){
+const stem=gz?.[0]||'';
+const branch=gz?.[1]||'';
+return {
+  天干:{天干:stem,五行:WX_MAP[stem]||'',十神:isDay?'日主':toTrad(getShishen(dayStem,stem))},
+  地支:{地支:branch,五行:WX_MAP[branch]||'',藏干:buildHiddenStemData(branch,dayStem)}
+};
+}
+
+function buildDayunList(monthPillar, dayStem, year, gender, birthMonth, birthDay, yearStem){
+const qiyun=getQiYunInfoApprox(year,birthMonth,birthDay,gender,yearStem);
+const monthIdx=GZ_CYCLE.indexOf(monthPillar);
+const list=[];
+for(let i=0;i<10;i++){
+  const idx=(monthIdx+(qiyun.forward?i+1:-(i+1))+60*2)%60;
+  const gz=GZ_CYCLE[idx];
+  const startAge=qiyun.age+i*10;
+  const startYear=year+startAge-1;
+  list.push({
+    干支:gz,
+    开始年龄:startAge,
+    结束年龄:startAge+9,
+    开始年份:startYear,
+    结束:startYear+9,
+    天干十神:toTrad(getShishen(dayStem,gz[0]))
+  });
+}
+return {qiyun,list};
+}
+
+function buildLocalBaziData({year,month,day,hour,minute,gender}){
+if(!window.Solar) throw new Error('本機排盤套件尚未載入');
+const solar=Solar.fromYmdHms(year,month,day,hour,minute,0);
+const lunar=solar.getLunar();
+const eightChar=lunar.getEightChar();
+const yearPillar=eightChar.getYear();
+const monthPillar=eightChar.getMonth();
+const dayPillar=eightChar.getDay();
+const timePillar=eightChar.getTime();
+const dayStem=dayPillar[0];
+const {qiyun,list}=buildDayunList(monthPillar,dayStem,year,gender,month,day,yearPillar[0]);
+const lunarText=`农历${lunar.getYearInGanZhi()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}${timePillar}时`;
+return {
+  阳历:`${year}-${month}-${day} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`,
+  农历:lunarText,
+  生肖:typeof lunar.getYearShengXiao==='function'?lunar.getYearShengXiao():'',
+  年柱:buildPillarData(yearPillar,dayStem),
+  月柱:buildPillarData(monthPillar,dayStem),
+  日柱:buildPillarData(dayPillar,dayStem,true),
+  时柱:buildPillarData(timePillar,dayStem),
+  大运:{
+    起运日期:formatDateLoose(qiyun.startDate),
+    起运年龄:qiyun.age,
+    大运:list
+  },
+  本机排盘:true
+};
+}
+
+// ══════════════════════════════════════════════
+// 產生報告
+// ══════════════════════════════════════════════
+async function doGenerate(){
+const name=document.getElementById('inp-name').value.trim();
+const year=document.getElementById('inp-year').value;
+const month=document.getElementById('inp-month').value;
+const day=document.getElementById('inp-day').value;
+const hour=document.getElementById('inp-hour').value;
+const minute=document.getElementById('inp-min').value;
+const gender=getToggleVal('gender');
+if(!name||!year||!month||!day||hour===''||minute===''||gender===null){
+alert('請完整填寫所有欄位');return;
+}
+const mm=String(month).padStart(2,'0');
+const dd=String(day).padStart(2,'0');
+const hh=String(hour).padStart(2,'0');
+const min=String(minute).padStart(2,'0');
+const dt=`${year}-${mm}-${dd}T${hh}:${min}:00+08:00`;
+const payload={dateType:'solar',solarDatetime:dt,gender:parseInt(gender),eightCharProviderSect:2};
+const apiUrls=[
+{url:'https://bazi.jianbao.org/api/bazi',timeout:8000},
+{url:'https://corsproxy.io/?url='+encodeURIComponent('https://bazi.jianbao.org/api/bazi'),timeout:3500},
+{url:'https://api.allorigins.win/raw?url='+encodeURIComponent('https://bazi.jianbao.org/api/bazi'),timeout:3500}
+];
+setLoading(true,'命盤推算中⋯');
+let json=null,lastErr='';
+for(const api of apiUrls){
+try{
+  json=await fetchJsonWithTimeout(api.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)},api.timeout);
+  if(json.success) break;
+}catch(e){
+  lastErr=e.name==='AbortError'?'排盤 API 請求逾時':e.message;
+  console.warn('Bazi API failed:', api.url, e);
+  setLoading(true,'排盤通道不穩，改用本機備援中⋯');
+}
+}
+if(!json||!json.success){
+  try{
+    json={
+      success:true,
+      data:buildLocalBaziData({
+        year:parseInt(year),
+        month:parseInt(month),
+        day:parseInt(day),
+        hour:parseInt(hour),
+        minute:parseInt(minute),
+        gender
+      })
+    };
+    cloudStatusText='外部排盤 API 暫時不穩，已改用本機排盤備援。';
+    updateAuthUI();
+  }catch(e){
+    setLoading(false);
+    alert('命盤推算暫時無法連線，本機備援也無法完成，請稍後再試\n'+(e.message||lastErr));
+    return;
+  }
+}
+setLoading(false);
+const client={
+id:Date.now().toString(),
+name,year:parseInt(year),month:parseInt(month),day:parseInt(day),
+hour:parseInt(hour),minute:parseInt(minute),
+gender:gender==='1'?'男':'女',
+consultDate:new Date().toISOString().split('T')[0],
+baziData:json.data
+};
+const clients=getClients();
+clients.unshift(client);
+saveClients(clients);
+loadReport(client.id);
+}
+
+function setLoading(show,msg=''){
+document.getElementById('loading-overlay').classList.toggle('hidden',!show);
+if(msg) document.getElementById('loading-msg').textContent=msg;
+}
+
+function clearGeminiAnswer(){
+const q=document.getElementById('gemini-question');
+const ans=document.getElementById('gemini-answer');
+if(q) q.value='';
+if(ans){
+  ans.textContent='';
+  ans.classList.remove('active');
+}
+}
+
+function getReportContextForGemini(){
+const info=document.getElementById('info-table')?.textContent||'';
+const bazi=document.getElementById('bazi-table')?.textContent||'';
+const dayun=document.getElementById('dayun-table')?.textContent||'';
+const full=document.getElementById('tab-full')?.textContent||'';
+const quick=document.getElementById('tab-quick')?.textContent||'';
+const allowedReport=canViewTeacherReport()?full:quick;
+const client=currentReportClient;
+const header=client ? `客戶：${client.name}，性別：${client.gender}，生日：${client.year}-${client.month}-${client.day} ${client.hour}:${client.minute}` : '';
+return [header,'基本訊息：'+info,'四柱排盤：'+bazi,'大運流年：'+dayun,'目前可見報告：'+allowedReport]
+  .join('\n\n')
+  .replace(/\s+/g,' ')
+  .slice(0,18000);
+}
+
+async function askGeminiAboutReport(){
+const key=getGeminiKey();
+const question=document.getElementById('gemini-question')?.value.trim()||'';
+const answer=document.getElementById('gemini-answer');
+const btn=document.getElementById('btn-ask-gemini');
+if(!key){
+  toggleGeminiChat(true);
+  setTimeout(()=>document.getElementById('gemini-api-key')?.focus(),50);
+  alert('請先在右下角 Gemini 浮窗貼上 API Key。');
+  return;
+}
+if(!question){
+  alert('請先輸入想問的問題。');
+  return;
+}
+if(answer){
+  answer.textContent='正在整理回答中⋯';
+  answer.classList.add('active');
+}
+if(btn) btn.disabled=true;
+try{
+  const prompt=[
+    '你是命理師 Doris 的報告助理，請使用繁體中文回答。',
+    '只能依據下方命盤報告內容與一般八字概念延伸，不要假裝有看到未提供的老師講義。',
+    '若問題超出命盤可判斷範圍，請溫和說明限制，並給可追問方向。',
+    '語氣要口語、清楚、適合命理師拿去對客戶說明；不要恐嚇，不做醫療、法律、投資保證。',
+    '不要使用「嗨、老師、我幫你整理」這類寒暄開頭，直接回答問題。',
+    '回答格式固定為三段：1. 先給一句明確結論。2. 說明命盤依據。3. 提供一段可以直接對客戶說的白話話術。',
+    '如果答案需要保留彈性，請說「比較偏向」或「可以這樣觀察」，不要講成絕對判斷。',
+    '',
+    '【目前報告內容】',
+    getReportContextForGemini(),
+    '',
+    '【使用者問題】',
+    question
+  ].join('\n');
+  let data=null,lastModelErr='';
+  for(const model of GEMINI_MODELS){
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-goog-api-key':key},
+      body:JSON.stringify({
+        contents:[{role:'user',parts:[{text:prompt}]}],
+        generationConfig:{temperature:0.45,maxOutputTokens:900}
+      })
+    });
+    data=await res.json();
+    if(res.ok) break;
+    lastModelErr=data.error?.message || `Gemini API 錯誤：${res.status}`;
+    if(!/not found|not available|not supported|is no longer available/i.test(lastModelErr)) {
+      throw new Error(lastModelErr);
+    }
+    data=null;
+  }
+  if(!data) throw new Error(lastModelErr || 'Gemini 模型目前不可用，請稍後再試。');
+  const text=(data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('\n').trim();
+  if(answer) answer.textContent=text || 'Gemini 沒有回傳文字，請稍後再試。';
+}catch(err){
+  console.error('Gemini ask error:', err);
+  if(answer) answer.textContent='Gemini 問答失敗：'+err.message;
+}finally{
+  if(btn) btn.disabled=false;
+}
+}
+
+// ══════════════════════════════════════════════
+// 載入並渲染報告
+// ══════════════════════════════════════════════
+function loadReport(id){
+const client=getClients().find(c=>c.id===id);
+if(!client) return;
+currentReportClient=client;
+clearGeminiAnswer();
+renderReport(client);
+showScreen('screen-report');
+}
+
+// ══════════════════════════════════════════════
+// 渲染報告主函式
+// ══════════════════════════════════════════════
+function renderReport(client){
+const bazi=client.baziData;
+const nian=bazi['年柱']||{};
+const yue=bazi['月柱']||{};
+const ri=bazi['日柱']||{};
+const shi=bazi['时柱']||{};
+const lunar=bazi['农历']||'';
+const shengxiao=bazi['生肖']||'';
+const riTg=(ri['天干']?.['天干'])||ri['天干']||'';
+const riZhuWx=WX_MAP[riTg]||'';
+const wxColor=WX_COLOR[riZhuWx]||'#999';
+const jq=calcJieQi(parseInt(client.year),parseInt(client.month),parseInt(client.day));
+
+document.getElementById('info-table').innerHTML=`
+<tr>
+  <td class="label">姓名</td><td class="value">${client.name}</td>
+  <td class="label">性別</td><td class="value">${client.gender}</td>
+</tr>
+<tr>
+  <td class="label">陽曆</td>
+  <td class="value">${client.year}年 ${client.month}月 ${client.day}日　${String(client.hour).padStart(2,'0')}時</td>
+  <td class="label">農曆</td><td class="value">${formatLunar(lunar)}</td>
+</tr>
+<tr>
+  <td class="label">生肖</td><td class="value">${shengxiao}</td>
+  <td class="label">五行</td>
+  <td class="value"><span style="color:${wxColor};font-weight:700">${riZhuWx}</span></td>
+</tr>
+<tr>
+  <td class="label">前節氣</td><td class="value">${jq.qian}</td>
+  <td class="label">後節氣</td><td class="value">${jq.hou}</td>
+</tr>
+<tr>
+  <td class="label">起運日</td>
+  <td class="value" colspan="3">${bazi['大运']?.['起运日期']||'—'}（${bazi['大运']?.['起运年龄']||''}歲起運）</td>
+</tr>
+`;
+
+const cols=[{key:'nian',data:nian},{key:'yue',data:yue},{key:'ri',data:ri},{key:'shi',data:shi}];
+cols.forEach(({key,data})=>{
+const tgObj=data['天干']||{};
+const dzObj=data['地支']||{};
+const tg=tgObj['天干']||'';
+const dz=dzObj['地支']||'';
+const tgWx=tgObj['五行']||WX_MAP[tg]||'';
+const dzWx=dzObj['五行']||WX_MAP[dz]||'';
+const tgC=WX_COLOR[tgWx]||'#4A3728';
+const dzC=WX_COLOR[dzWx]||'#4A3728';
+const cgRaw=dzObj['藏干']||{};
+const cgKeys=['余气','中气','主气'];
+document.getElementById('tg-'+key).innerHTML=`<span class="tg-char" style="color:${tgC}">${tg}</span><span class="wx-label">${tgWx}</span>`;
+document.getElementById('dz-'+key).innerHTML=`<span class="dz-char" style="color:${dzC}">${dz}</span><span class="wx-label">${dzWx}</span>`;
+const cgEl=document.getElementById('cg-'+key);
+if(cgEl) cgEl.innerHTML=cgKeys.map(k=>{
+  const char=cgRaw[k]?.['天干']||'';
+  const wx=cgRaw[k]?.['五行']||WX_MAP[char]||'';
+  const col=WX_COLOR[wx]||'#555';
+  return char?`<span style="color:${col}">${char}</span>`:'';
+}).filter(Boolean).join(' ');
+const msEl=document.getElementById('ms-'+key);
+if(msEl) msEl.innerHTML=toTrad(tgObj['十神']||'—');
+const fsEl=document.getElementById('fs-'+key);
+if(fsEl) fsEl.innerHTML=cgKeys.map(k=>cgRaw[k]?.['十神']||'').filter(Boolean).map(s=>`<span class="fs-item">${toTrad(s)}</span>`).join('')||'—';
+});
+
+const qiyun=bazi['大运']?.['起运日期']?'起運：'+bazi['大运']['起运日期']+'（'+bazi['大运']['起运年龄']+'歲起運）':'—';
+document.getElementById('qiyun-cell').textContent=qiyun;
+
+renderDayun(bazi);
+renderAnalysisAsync(client, bazi);
+}
+
+// ══════════════════════════════════════════════
+// 大運流年
+// ══════════════════════════════════════════════
+function renderDayun(bazi){
+const dayunList=bazi['大运']?.['大运']||[];
+const table=document.getElementById('dayun-table');
+if(!dayunList.length){
+table.innerHTML='<tr><td style="padding:20px;color:#999;text-align:center">大運資料無法載入</td></tr>';
+return;
+}
+const ageRow=['<td class="row-label-cell">歲數</td>'];
+const yearRow=['<td class="row-label-cell">年份</td>'];
+const gzRow=['<td class="row-label-cell">大運</td>'];
+const shenRow=['<td class="row-label-cell">十神</td>'];
+dayunList.forEach(dy=>{
+const startYear=dy['开始年份']||'';
+const endYear=dy['结束']||'';
+const startAge=dy['开始年龄']||'';
+const endAge=dy['结束年龄']||'';
+const gz=dy['干支']||'';
+const shen=toTrad(dy['天干十神']||'');
+const tg=gz[0]||'';
+const tgC=WX_COLOR[WX_MAP[tg]]||'#4A3728';
+const isCurrent=startYear&&parseInt(startYear)<=CURRENT_YEAR&&CURRENT_YEAR<=parseInt(endYear);
+const cls=isCurrent?'hl-col':'';
+ageRow.push(`<td class="${cls}">${startAge}～${endAge}</td>`);
+yearRow.push(`<td class="${cls}">${startYear}<br>～<br>${endYear}</td>`);
+gzRow.push(`<td class="${cls}"><span class="gz-big" style="color:${tgC}">${gz}</span>${isCurrent?'<br><span style="font-size:10px;color:#C8622A">▶ 當前</span>':''}</td>`);
+shenRow.push(`<td class="${cls}">${shen}</td>`);
+});
+table.innerHTML=`<tr>${ageRow.join('')}</tr><tr>${yearRow.join('')}</tr><tr>${gzRow.join('')}</tr><tr>${shenRow.join('')}</tr>`;
+
+const ageCells=[],dyCells=[];
+[...dayunList].reverse().forEach(dy=>{
+const startAge=dy['开始年龄']||'';
+const endAge=dy['结束年龄']||'';
+const gz=dy['干支']||'';
+const tg=gz[0]||'';
+const tgC=WX_COLOR[WX_MAP[tg]]||'#4A3728';
+const startYear=dy['开始年份']||'';
+const endYear=dy['结束']||'9999';
+const isCur=startYear&&parseInt(startYear)<=CURRENT_YEAR&&CURRENT_YEAR<=parseInt(endYear);
+const curCls=isCur?'dayun-row-cur':'';
+ageCells.push(`<td class="${curCls}">${startAge}～${endAge}</td>`);
+dyCells.push(`<td class="${curCls}"><span style="color:${tgC};font-weight:700;font-size:1.05rem;">${gz[0]||''}</span><br><span style="color:${tgC};font-weight:700;font-size:1.05rem;">${gz[1]||''}</span>${isCur?'<br><span style="font-size:9px;color:#C8622A;">▶當前</span>':''}</td>`);
+});
+const rowTable=document.getElementById('dayun-row-table');
+if(rowTable) rowTable.innerHTML=`<tr>${ageCells.join('')}<td class="dayun-row-label">歲</td></tr><tr>${dyCells.join('')}<td class="dayun-row-label">大運</td></tr>`;
+
+let curIdx=dayunList.findIndex(dy=>dy['开始年份']&&parseInt(dy['开始年份'])<=CURRENT_YEAR&&CURRENT_YEAR<=parseInt(dy['结束']||9999));
+if(curIdx<0) curIdx=0;
+const curDy=dayunList[curIdx];
+const dyStart=parseInt(curDy['开始年份']);
+const dyEnd=parseInt(curDy['结束']||9999);
+const birthYear=parseInt((bazi['阳历']||'').match(/\d{4}/)?.[0]||'1990');
+const TG_A=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const DZ_A=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+function getGZ(y){return{gz:TG_A[(y-4)%10]+DZ_A[(y-4)%12],tg:TG_A[(y-4)%10]};}
+
+const lyAgeRow=['<td class="row-label-cell">歲數</td>'];
+const lyYearRow=['<td class="row-label-cell">年份</td>'];
+const lyGzRow=['<td class="row-label-cell">流年</td>'];
+for(let y=dyStart;y<=dyEnd;y++){
+const{gz,tg}=getGZ(y);
+const age=y-birthYear+1;
+const tgC=WX_COLOR[WX_MAP[tg]]||'#4A3728';
+const isCur=y===CURRENT_YEAR;
+const cls=isCur?'hl-col':'';
+lyAgeRow.push(`<td class="${cls}">${age}</td>`);
+lyYearRow.push(`<td class="${cls}">${y}</td>`);
+lyGzRow.push(`<td class="${cls}"><span style="color:${tgC};font-weight:${isCur?'700':'400'}">${gz}</span>${isCur?'<br><span style="font-size:10px;color:#C8622A">▶今年</span>':''}</td>`);
+}
+const old=document.getElementById('liunian-table-wrap');
+if(old) old.remove();
+const wrap=table.closest('.dayun-wrap')||table.parentElement;
+const lnDiv=document.createElement('div');
+lnDiv.id='liunian-table-wrap';
+lnDiv.style.cssText='margin-top:20px;overflow-x:auto;';
+lnDiv.innerHTML=`
+<div style="font-size:0.8rem;font-weight:700;color:#8B6914;margin-bottom:8px;">
+  當前大運（${curDy['干支']} ${toTrad(curDy['天干十神']||'')}）· 流年
+</div>
+<table class="dayun-table">
+  <tr>${lyAgeRow.join('')}</tr>
+  <tr>${lyYearRow.join('')}</tr>
+  <tr>${lyGzRow.join('')}</tr>
+</table>
+`;
+wrap.appendChild(lnDiv);
+}
+
+// ══════════════════════════════════════════════
+// 命理輔助計算函式
+// ══════════════════════════════════════════════
+function getShishen(riTg, targetTg){
+const WX={甲:'木',乙:'木',丙:'火',丁:'火',戊:'土',己:'土',庚:'金',辛:'金',壬:'水',癸:'水'};
+const YANG=['甲','丙','戊','庚','壬'];
+const riWx=WX[riTg]; const tWx=WX[targetTg];
+const riYang=YANG.includes(riTg); const tYang=YANG.includes(targetTg);
+const same=riYang===tYang;
+const sheng={木:'火',火:'土',土:'金',金:'水',水:'木'};
+const ke={木:'土',火:'金',土:'水',金:'木',水:'火'};
+if(riWx===tWx) return same?'比肩':'劫財';
+if(sheng[riWx]===tWx) return same?'食神':'傷官';
+if(ke[riWx]===tWx) return same?'偏財':'正財';
+if(ke[tWx]===riWx) return same?'七殺':'正官';
+if(sheng[tWx]===riWx) return same?'偏印':'正印';
+return '—';
+}
+
+function getCaiStar(riWx){
+return {木:'土',火:'金',土:'水',金:'木',水:'火'}[riWx]||'';
+}
+
+function getGuanStar(riWx){
+return {木:'金',火:'水',土:'木',金:'火',水:'土'}[riWx]||'';
+}
+
+function getPeiouStar(riWx, gender){
+return gender==='男' ? getCaiStar(riWx) : getGuanStar(riWx);
+}
+
+function getWeakWx(riWx, isStrong){
+if(!isStrong) return {木:'金',火:'水',土:'木',金:'火',水:'土'}[riWx]||'';
+return {木:'土',火:'金',土:'水',金:'木',水:'火'}[riWx]||'';
+}
+
+function getRelation(riWx, targetWx){
+if(!riWx||!targetWx) return '關係待分析';
+if(riWx===targetWx) return '自我與競爭加強（比劫）';
+const sheng={木:'火',火:'土',土:'金',金:'水',水:'木'};
+const ke={木:'土',火:'金',土:'水',金:'木',水:'火'};
+if(sheng[riWx]===targetWx) return '表達輸出增加（食傷）';
+if(sheng[targetWx]===riWx) return '資源學習加強（印星）';
+if(ke[riWx]===targetWx) return '財務資源浮現（財星）';
+if(ke[targetWx]===riWx) return '責任壓力增加（官星）';
+return '關係複雜，需綜合判斷';
+}
+
+function getDayunLiunianNote(dyWx, lyWx){
+if(dyWx===lyWx) return '大運流年同五行，能量集中，影響加倍';
+const sheng={木:'火',火:'土',土:'金',金:'水',水:'木'};
+if(sheng[dyWx]===lyWx||sheng[lyWx]===dyWx) return '大運流年相生，能量流動順暢';
+return '大運流年五行不同，需分別評估各自影響';
+}
+
+function getDayunCareerNote(shen){
+const notes={
+'正官':'走正官運，事業穩定有升遷機會，適合在大企業或政府機關發展',
+'七殺':'走七殺運，壓力大但爆發力強，適合創業或挑戰性工作',
+'正財':'走正財運，財運穩健，適合穩定收入的工作',
+'偏財':'走偏財運，投資機會多，適合業務或自由業',
+'食神':'走食神運，才華發揮，適合創意、技術類工作',
+'傷官':'走傷官運，創意旺盛但易與上司衝突，適合自由業',
+'比肩':'走比肩運，競爭增加，需防合夥糾紛',
+'劫財':'走劫財運，財務需謹慎，防破財',
+'正印':'走正印運，學習進修好時機，貴人運旺',
+'偏印':'走偏印運，適合研究、宗教、藝術類'
+};
+return notes[shen]||'十神'+shen+'，需結合全盤分析';
+}
+
+function getLiunianCareerNote(shen){
+const notes={
+'正官':'流年逢正官，有升遷或轉職機會',
+'七殺':'流年逢七殺，工作壓力大，需防小人',
+'正財':'流年逢正財，薪資收入有望提升',
+'偏財':'流年逢偏財，投資或副業有機會',
+'食神':'流年逢食神，工作順心，才能受賞識',
+'傷官':'流年逢傷官，易與上司衝突，慎言',
+'比肩':'流年逢比肩，競爭加劇，需鞏固地位',
+'劫財':'流年逢劫財，防財務損失或合夥問題',
+'正印':'流年逢正印，貴人相助，適合進修',
+'偏印':'流年逢偏印，思維活躍，適合獨立研究'
+};
+return notes[shen]||'流年'+shen+'，需結合命盤分析';
+}
+
+function getLiunianLoveNote(shen){
+const notes={
+'正財':'男命流年逢正財，有姻緣機會',
+'偏財':'男命流年逢偏財，桃花旺但需辨別真心',
+'正官':'女命流年逢正官，有正緣出現機會',
+'七殺':'女命流年逢七殺，感情波動大，需謹慎',
+'食神':'感情表達順暢，易受異性喜愛',
+'傷官':'感情易生波折，需避免過於強勢',
+'比肩':'感情競爭增加，需防第三者',
+'劫財':'感情財務糾紛，需謹慎',
+'正印':'感情較保守，緣分需主動把握',
+'偏印':'感情孤獨感較重，需主動社交'
+};
+return notes[shen]||'流年'+shen+'，感情需結合命盤分析';
+}
+
+function getRizhiMarriageNote(riDz){
+const notes={
+子:'婚姻宮屬水，感情細膩敏感',丑:'婚姻宮屬土，感情穩重但較慢熱',
+寅:'婚姻宮屬木，感情積極主動',卯:'婚姻宮屬木，感情溫柔體貼',
+辰:'婚姻宮屬土，重安全感、生活穩定與現實承諾；辰中藏癸、乙、戊，常把金錢安全感、責任感與朋友式陪伴一起放進關係裡',巳:'婚姻宮屬火，感情熱烈但易忽冷忽熱',
+午:'婚姻宮屬火，感情熱情奔放',未:'婚姻宮屬土，感情忠誠但固執',
+申:'婚姻宮屬金，感情理性但較冷淡',酉:'婚姻宮屬金，感情完美主義',
+戌:'婚姻宮屬土，感情忠誠，但婚後易有摩擦',亥:'婚姻宮屬水，感情浪漫多情'
+};
+return notes[riDz]||'需綜合分析';
+}
+
+function getHealthNote(lyWx, riWx){
+const ke={木:'土',火:'金',土:'水',金:'木',水:'火'};
+if(ke[lyWx]===riWx) return '流年五行剋日主，體力較易消耗，需注意休息';
+if(ke[riWx]===lyWx) return '流年五行被日主剋，對應臟腑需多保養';
+if(lyWx===riWx) return '流年同五行，身體狀態與日主五行對應臟腑相關';
+return '流年五行與日主相生，整體健康狀態尚可';
+}
+
+// ══════════════════════════════════════════════
+// 非同步渲染分析報告
+// ══════════════════════════════════════════════
+async function renderAnalysisAsync(client, bazi){
+document.getElementById('tab-full').innerHTML='<div class="kb-loading">🔮 正在為你分析命盤⋯</div>';
+document.getElementById('tab-quick').innerHTML='<div class="kb-loading">🔮 正在為你分析命盤⋯</div>';
+
+const kbNew = await fetchKB('bazi_knowledge_colloquial.json')
+  || await fetchKB('bazi_knowledge_base_complete.json');
+const teacherKB = await fetchKB('bazi_teacher_perspectives.json');
+
+if(!kbNew){
+  const err='<div class="kb-error">❌ 知識庫載入失敗，請重新整理頁面</div>';
+  document.getElementById('tab-full').innerHTML=err;
+  document.getElementById('tab-quick').innerHTML=err;
+  return;
+}
+
+const ri   = bazi['日柱']||{};
+const yue  = bazi['月柱']||{};
+const nian = bazi['年柱']||{};
+const shi  = bazi['时柱']||{};
+
+const riTg   = ri['天干']?.['天干']||'';
+const riDz   = ri['地支']?.['地支']||'';
+const riWx   = WX_MAP[riTg]||'';
+const wxColor= WX_COLOR[riWx]||'#4A3728';
+
+const yueDz  = yue['地支']?.['地支']||'';
+const yueDzWx= WX_MAP[yueDz]||'';
+const yueStar= toTrad(yue['天干']?.['十神']||'');
+
+const yangTg   = ['甲','丙','戊','庚','壬'];
+const isYang   = yangTg.includes(riTg);
+const yinYang  = isYang?'陽':'陰';
+
+const isStrong = (yueDzWx===riWx)||
+  (riWx==='木'&&yueDzWx==='水')||
+  (riWx==='火'&&yueDzWx==='木')||
+  (riWx==='土'&&yueDzWx==='火')||
+  (riWx==='金'&&yueDzWx==='土')||
+  (riWx==='水'&&yueDzWx==='金');
+const strongLabel = isStrong?'身強':'身弱';
+
+const dayunList = bazi['大运']?.['大运']||[];
+const curDy = dayunList.find(dy=>
+  dy['开始年份']&&
+  parseInt(dy['开始年份'])<=CURRENT_YEAR&&
+  CURRENT_YEAR<=parseInt(dy['结束']||9999)
+)||dayunList[0]||{};
+const curDyGz  = curDy['干支']||'';
+const curDyShen= toTrad(curDy['天干十神']||'');
+const curDyTg  = curDyGz[0]||'';
+const curDyDz  = curDyGz[1]||'';
+const curDyWx  = WX_MAP[curDyTg]||'';
+const curDyAge = curDy['开始年龄']||'';
+const curDyEnd = curDy['结束年龄']||'';
+
+const TG_ARR = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const DZ_ARR = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const lyTg   = TG_ARR[(CURRENT_YEAR-4)%10];
+const lyDz   = DZ_ARR[(CURRENT_YEAR-4)%12];
+const lyGz   = lyTg+lyDz;
+const lyWx   = WX_MAP[lyTg]||'';
+const lyStar = toTrad(getShishen(riTg, lyTg));
+const lyYear = String(CURRENT_YEAR);
+
+const caiStar   = getCaiStar(riWx);
+const guanStar  = getGuanStar(riWx);
+const peiouStar = getPeiouStar(riWx, client.gender);
+const weakWx    = getWeakWx(riWx, isStrong);
+const WX_ORGAN  = {木:'肝膽、眼睛',火:'心臟、小腸',土:'脾胃、消化系統',金:'肺部、大腸',水:'腎臟、膀胱'};
+const pillarList = [
+  {label:'年柱', role:'祖先宮／早年', tg:nian['天干']?.['天干']||'', dz:nian['地支']?.['地支']||''},
+  {label:'月柱', role:'父母事業宮／現實環境', tg:yue['天干']?.['天干']||'', dz:yue['地支']?.['地支']||''},
+  {label:'日柱', role:'自己與夫妻宮', tg:riTg, dz:riDz},
+  {label:'時柱', role:'子女晚年宮／成果', tg:shi['天干']?.['天干']||'', dz:shi['地支']?.['地支']||''}
+];
+const pillarDataList = [
+  {label:'年柱', data:nian},
+  {label:'月柱', data:yue},
+  {label:'日柱', data:ri},
+  {label:'時柱', data:shi}
+];
+
+function collectTenGodEntries(){
+  const entries = [];
+  pillarDataList.forEach(({label, data}) => {
+    const tgObj = data['天干'] || {};
+    const tg = tgObj['天干'] || '';
+    const tgShen = toTrad(tgObj['十神'] || '');
+    if(tg && tgShen && tgShen !== '日主'){
+      entries.push({pillar:label, place:'天干', stem:tg, shen:tgShen});
+    }
+    const cgRaw = data['地支']?.['藏干'] || {};
+    ['余气','中气','主气'].forEach(key => {
+      const item = cgRaw[key] || {};
+      const stem = item['天干'] || '';
+      const shen = toTrad(item['十神'] || '');
+      if(stem && shen && shen !== '日主'){
+        entries.push({pillar:label, place:'藏干', stem, shen});
+      }
+    });
+  });
+  return entries;
+}
+
+const tenGodEntries = collectTenGodEntries();
+function tenGodMatches(names){
+  const list = Array.isArray(names) ? names : [names];
+  return tenGodEntries.filter(entry => list.includes(entry.shen));
+}
+function formatTenGodEntries(entries){
+  if(!entries.length) return '未在原局天干或藏干中明顯出現';
+  return entries.map(entry => `${entry.pillar}${entry.place} ${entry.stem}${WX_MAP[entry.stem] || ''}[${entry.shen}]`).join('、');
+}
+const caiEntries = tenGodMatches(['正財','偏財']);
+const zhengCaiEntries = tenGodMatches('正財');
+const pianCaiEntries = tenGodMatches('偏財');
+const jieCaiEntries = tenGodMatches('劫財');
+const guanEntries = tenGodMatches(['正官','七殺']);
+const shiShangEntries = tenGodMatches(['食神','傷官']);
+const spousePalaceHidden = (() => {
+  const cgRaw = ri['地支']?.['藏干'] || {};
+  return ['余气','中气','主气'].map(key => {
+    const item = cgRaw[key] || {};
+    const stem = item['天干'] || '';
+    const shen = toTrad(item['十神'] || '');
+    return stem && shen ? `${stem}${shen}` : '';
+  }).filter(Boolean);
+})();
+
+function relationTone(relation, strength){
+  if(relation.includes('資源') || relation.includes('印') || relation.includes('自我') || relation.includes('比劫')){
+    return strength === '身強' ? '這會讓你更有底氣，也更容易把想法放大；好處是行動力強，提醒是不要太固執或把壓力悶住。' : '這是在補你的能量，適合先穩住身心、建立資源，再談擴張。';
+  }
+  if(relation.includes('食傷')) return '會把能量往外帶，適合表達、作品、教學、輸出與建立個人風格。';
+  if(relation.includes('財')) return strength === '身強' ? '財星被帶出來，適合談資源、收入、客戶與可落地的成果。' : '財星會帶來機會，也會帶來消耗，財務和承諾要量力而為。';
+  if(relation.includes('官星') || relation.includes('官殺')) return '責任、規則、主管與外界要求變明顯，適合建立紀律，但不要硬扛所有壓力。';
+  return '需要合併大運、本命強弱與宮位一起看，不宜只用單一五行下結論。';
+}
+
+function relationPlain(relation){
+  if(relation.includes('資源') || relation.includes('印')) return '資源、學習、貴人、休息與內在整理被加強';
+  if(relation.includes('自我') || relation.includes('比劫')) return '自我意識、同輩競爭、主見與行動力被加強';
+  if(relation.includes('食傷')) return '表達、作品、輸出、教學與創意被加強';
+  if(relation.includes('財')) return '金錢、客戶、資源交換與現實成果被加強';
+  if(relation.includes('官星') || relation.includes('官殺')) return '官星能量：責任、規則、壓力、主管與外界要求被加強';
+  return relation;
+}
+
+function tenGodImpact(shen){
+  const impacts = {
+    正印:'學習、資源、保護、貴人與安全感被加強',
+    偏印:'研究、直覺、非典型學習、休息與內在整理被加強',
+    正財:'務實、金錢秩序、責任感與現實資源的掌握被加強',
+    偏財:'機會、人脈、彈性收入、資源交換與對外開拓被加強',
+    正官:'責任、制度、名聲、職場位置與穩定承諾被加強',
+    七殺:'壓力、挑戰、競爭、行動力與危機處理被加強',
+    食神:'表達、作品、享受、教學與穩定輸出被加強',
+    傷官:'創意、突破、反應速度、表達慾與不喜被管的能量被加強',
+    比肩:'自我意識、主見、同輩競爭與獨立性被加強',
+    劫財:'朋友互動、資源分配、合作競爭與財務流動被加強',
+    日主:'自我狀態、主見、核心需求與行動方式被加強'
+  };
+  return impacts[shen] || '此宮位的主題被加強';
+}
+
+function dayunAppliedSummary(){
+  const tgRelation = getRelation(riWx, WX_MAP[curDyTg]);
+  const dzRelation = getRelation(riWx, WX_MAP[curDyDz]);
+  const firstHalf = curDyAge && curDyEnd ? `${curDyAge}～${Math.min(Number(curDyAge) + 4, Number(curDyEnd))}歲` : '前五年';
+  const secondHalf = curDyAge && curDyEnd ? `${Math.min(Number(curDyAge) + 5, Number(curDyEnd))}～${curDyEnd}歲` : '後五年';
+  return [
+    `這十年（${curDyAge}～${curDyEnd}歲）整體由【${curDyShen}】主導。其中前五年（${firstHalf}）外在環境與突發事件更容易顯現出【${curDyTg}${WX_MAP[curDyTg] || ''}】的訊號；後五年（${secondHalf}）則進入【${curDyDz}${WX_MAP[curDyDz] || ''}】內在心境與能量累積的深水區。`,
+    `【${curDyTg}】對你的日主【${riTg}】是【${curDyShen || getShishen(riTg, curDyTg)}】，所以這十年的主題偏向：${getDayunCareerNote(curDyShen)}。`,
+    `地支【${curDyDz}】五行屬【${WX_MAP[curDyDz] || '—'}】，會讓「${relationPlain(dzRelation)}」。因為你本來就是【${strongLabel}】，所以好處是底氣變足，盲點是容易想太多、拖延或變得更固執。`
+  ];
+}
+
+function advisoryGuideFor(shen){
+  if(['偏印','正印'].includes(shen)){
+    return '諮商行動指南：把想到的東西「寫下來」或「做出作品」，讓能量流動起來；當想法有出口，固執就會比較容易轉成專念。';
+  }
+  return '';
+}
+
+function liunianAppliedSummary(){
+  const tgRelation = getRelation(riWx, WX_MAP[lyTg]);
+  const dzRelation = getRelation(riWx, WX_MAP[lyDz]);
+  return [
+    `${lyYear}年的流年是【${lyGz}】。天干【${lyTg}】對你的日主【${riTg}】是【${lyStar}】，代表今年浮上檯面的主題是「${getLiunianCareerNote(lyStar)}」。`,
+    `地支【${lyDz}】五行屬【${WX_MAP[lyDz] || '—'}】，偏向今年的環境、人際與身體感受；它會讓「${relationPlain(dzRelation)}」。`,
+    `套回你的盤來看：${tgRelation}。${relationTone(tgRelation, strongLabel)}`
+  ];
+}
+
+function careerDirectionSummary(){
+  const directions = [];
+  if(curDyShen === '偏印' || curDyShen === '正印'){
+    directions.push('研究分析、命理玄學、身心靈、宗教哲學、教學進修、顧問型工作');
+  }
+  if(shiShangEntries.length){
+    directions.push('內容輸出、課程設計、寫作表達、作品型工作、講師或知識型產品');
+  }
+  if(guanEntries.length || guanStar){
+    directions.push('制度流程、專案管理、專業證照、需要責任感與規範的職位');
+  }
+  if(caiEntries.length){
+    directions.push('資源整合、客戶經營、財務秩序、可被成果衡量的工作');
+  }
+  return uniqueJoined(directions).replace(/、內容輸出/g, '；內容輸出');
+}
+
+function wealthBigSummary(){
+  const total = caiEntries.length;
+  const zheng = zhengCaiEntries.length;
+  const pian = pianCaiEntries.length;
+  const jie = jieCaiEntries.length;
+  if(!total) return '財運總結：原局財星不明顯，賺錢要靠大運流年、專業輸出與後天經營，不適合只等機會。';
+  const level = total >= 5 ? '財星很明顯' : total >= 3 ? '財星有根、有感' : '財星有出現';
+  const style = zheng > pian
+    ? '偏向穩定收入、固定客戶、價格制度與現實安全感'
+    : pian > zheng
+      ? '偏向機會財、人脈財、專案收入與彈性收入'
+      : '穩定收入與機會財都要看';
+  const caution = jie ? `但同時有${jie}個劫財訊號，合夥、借貸、分帳、朋友家人牽涉金錢時要先講規則。命盤中帶有劫財，代表你對朋友大方、不拘小節；「親兄弟明算帳」不是小氣，而是幫你守住財富、同時維持和氣的防火牆。` : '劫財訊號不重，財務上更適合靠制度穩定累積。';
+  return `財運總結：原局共有${total}個財星訊號（正財${zheng}、偏財${pian}），屬於「${level}」。你的財運模式${style}。${caution}`;
+}
+
+function careerBigSummary(){
+  const hasOutput = shiShangEntries.length > 0;
+  const hasOfficial = guanEntries.length > 0;
+  const main = curDyShen === '偏印'
+    ? '這十年的事業主軸是先累積專業、建立方法論，再用作品、課程或顧問服務被看見'
+    : `這十年的事業主軸受【${curDyShen}】影響，需要搭配原局官星與食傷一起看`;
+  const evidence = [
+    hasOfficial ? `正官${guanEntries.filter(entry => entry.shen === '正官').length || guanEntries.length}個，代表責任、制度、名聲與職場位置不是空的` : '',
+    hasOutput ? `食傷${shiShangEntries.length}個，代表可靠表達、教學、作品、內容輸出累積能見度` : '',
+    caiEntries.length ? `財星${caiEntries.length}個，代表成果最好能轉成明確價格、服務方案與收款規則` : ''
+  ].filter(Boolean).join('；');
+  return `事業總結：${main}。${evidence || '目前要以大運與流年補充判斷'}。`;
+}
+
+function spouseProfileSummary(){
+  const parts = [];
+  parts.push(`配偶星五行是【${peiouStar}】，外型氣質多偏「${peiouStar === '木' ? '憨厚老實、不高不矮、身形偏結實或偏壯，給人樸實可靠感' : peiouStar === '火' ? '明亮、有精神、表情感強' : peiouStar === '土' ? '穩重、樸實、有安全感' : peiouStar === '金' ? '乾淨俐落、有輪廓或質感' : '柔和、聰明、流動感強'}」。`);
+  if(guanEntries.length){
+    parts.push(`原局有官星訊號：${formatTenGodEntries(guanEntries)}，所以你容易被有責任感、守規矩、願意承擔的人吸引。`);
+  }
+  if(spousePalaceHidden.length){
+    parts.push(`夫妻宮【${riDz}】藏干是${spousePalaceHidden.join('、')}，代表你在關係裡同時在意現實安全感、責任承諾與同伴感。`);
+  }
+  if(spousePalaceHidden.some(item => item.includes('比肩'))){
+    parts.push('相處模式偏朋友型、戰友型：能一起討論、一起做事、互相支援，會比只靠浪漫更讓你安心。');
+  }
+  if(riDz === '辰'){
+    parts.push('辰土夫妻宮也讓你比較慢熱，會觀察對方是否穩定、可靠、能不能一起面對生活細節。');
+  }
+  return parts;
+}
+
+function analyzeCombinations(){
+  const stems = pillarList.filter(p => p.tg);
+  const branches = pillarList.filter(p => p.dz);
+  const stemCombos = [
+    ['甲','己','土'],['乙','庚','金'],['丙','辛','水'],['丁','壬','木'],['戊','癸','火']
+  ];
+  const stemComboNotes = {
+    '甲己':'中正之合：講信用、重承諾，但也容易固執或想當好好先生。',
+    '乙庚':'仁義之合：重義氣、有原則，說話和行動比較直接。',
+    '丙辛':'威制之合：個性強、重氣勢，也容易有好勝心。',
+    '丁壬':'淫暱之合：感受細膩、重品味，也容易牽動桃花與情感需求。',
+    '戊癸':'無情之合：情緒反應容易悶在心裡，外表可能顯得冷淡；但內在其實重情趣、重感受。'
+  };
+  const stemComboNames = {
+    '甲己':'中正之合',
+    '乙庚':'仁義之合',
+    '丙辛':'威制之合',
+    '丁壬':'淫暱之合',
+    '戊癸':'無情之合'
+  };
+  const stemComboLifeNotes = {
+    '戊癸':'生活化論斷：對感情容易理智、界線分明，外表不一定熱情，但內在重感受；另一半、工作圈或原生家庭之間容易高度綁定，需要把關係界線說清楚。',
+    '甲己':'生活化論斷：重承諾、講信用，但容易為了顧全大局而壓住自己的感受。',
+    '乙庚':'生活化論斷：重義氣與原則，關係裡容易一邊想配合，一邊又不想失去主導權。',
+    '丙辛':'生活化論斷：外在氣場與內在細節感互相拉扯，容易在形象、合作或親密關係裡出現強弱角力。',
+    '丁壬':'生活化論斷：情感感受細膩，容易被品味、陪伴、情緒交流牽動。'
+  };
+  const branchSix = [
+    ['子','丑','土'],['寅','亥','木'],['卯','戌','火'],['辰','酉','金'],['巳','申','水'],['午','未','土']
+  ];
+  const clashes = [
+    ['子','午'],['丑','未'],['寅','申'],['卯','酉'],['辰','戌'],['巳','亥']
+  ];
+  const rows = [];
+  for(const [a,b,wx] of stemCombos){
+    const pa = stems.find(p => p.tg === a);
+    const pb = stems.find(p => p.tg === b);
+    if(pa && pb){
+      const supportReasons = [];
+      if(yueDzWx === wx) supportReasons.push(`月支【${yueDz}】屬${wx}，月令有支撐`);
+      const sameWxStems = stems.filter(p => WX_MAP[p.tg] === wx).map(p => `${p.label}【${p.tg}】`);
+      if(sameWxStems.length) supportReasons.push(`${sameWxStems.join('、')}透出${wx}氣`);
+      const sameWxBranches = branches.filter(p => WX_MAP[p.dz] === wx).map(p => `${p.label}【${p.dz}】`);
+      if(sameWxBranches.length) supportReasons.push(`${sameWxBranches.join('、')}帶${wx}氣`);
+      const comboKey = a + b;
+      rows.push(`
+        <div class="combo-board">
+          <div class="combo-board-item"><span class="combo-board-label">合化組合</span><span class="combo-board-value">${a}${b}合${wx}・${stemComboNames[comboKey] || '天干五合'}</span></div>
+          <div class="combo-board-item"><span class="combo-board-label">牽動宮位</span><span class="combo-board-value">${pa.label}（${pa.role}）＋${pb.label}（${pb.role}）</span></div>
+          <div class="combo-board-item"><span class="combo-board-label">最終判定</span><span class="combo-board-value">合而不化，相互牽動</span></div>
+          <div class="combo-board-item"><span class="combo-board-label">生活化論斷</span><span class="combo-board-value">${stemComboLifeNotes[comboKey] || stemComboNotes[comboKey] || '相關宮位容易互相影響，做判斷時要分開看，不要混成單一事件。'}</span></div>
+        </div>
+      `);
+    }
+  }
+  for(const [a,b,wx] of branchSix){
+    const pa = branches.find(p => p.dz === a);
+    const pb = branches.find(p => p.dz === b);
+    if(pa && pb) rows.push(`
+      <div class="combo-board">
+        <div class="combo-board-item"><span class="combo-board-label">地支互動</span><span class="combo-board-value">${a}${b}合${wx}</span></div>
+        <div class="combo-board-item"><span class="combo-board-label">牽動宮位</span><span class="combo-board-value">${pa.label}＋${pb.label}</span></div>
+        <div class="combo-board-item"><span class="combo-board-label">最終判定</span><span class="combo-board-value">六合牽動，合作與黏著並存</span></div>
+      </div>
+    `);
+  }
+  for(const [a,b] of clashes){
+    const pa = branches.find(p => p.dz === a);
+    const pb = branches.find(p => p.dz === b);
+    if(pa && pb) rows.push(`
+      <div class="combo-board">
+        <div class="combo-board-item"><span class="combo-board-label">地支互動</span><span class="combo-board-value">${a}${b}沖</span></div>
+        <div class="combo-board-item"><span class="combo-board-label">牽動宮位</span><span class="combo-board-value">${pa.label}＋${pb.label}</span></div>
+        <div class="combo-board-item"><span class="combo-board-label">最終判定</span><span class="combo-board-value">有沖動訊號，代表變動與拉扯</span></div>
+      </div>
+    `);
+  }
+  return rows;
+}
+
+function qContent(kb, sub_item, query_key, fallback){
+  if(!kb || !kb.knowledge_base) return fallback||'';
+  const entry = kb.knowledge_base.find(e => {
+    if(e.sub_item !== sub_item) return false;
+    return Object.entries(query_key).every(([k,v]) => e.query_key && e.query_key[k] === v);
+  });
+  return (entry && entry.content) ? personalizeContent(entry.content) : (fallback||'');
+}
+
+function personalizeContent(text){
+  if(!text) return '';
+  const yongshenMap = {
+    身強:{木:'火、土、金',火:'土、金、水',土:'金、水、木',金:'水、木、火',水:'木、火、土'},
+    身弱:{木:'水、木',火:'木、火',土:'火、土',金:'土、金',水:'金、水'}
+  };
+  const yongshenText = yongshenMap[strongLabel]?.[riWx] || '喜用神';
+  return text
+    .replaceAll('{{日主}}', riTg+riWx)
+    .replaceAll('{{日主五行}}', riWx)
+    .replaceAll('{{身強／身弱／從強格／從弱格}}', strongLabel)
+    .replaceAll('{{身強弱結果}}', strongLabel)
+    .replaceAll('{{大運天干}}{{大運地支}}', curDyGz)
+    .replaceAll('{{起運年齡}}', curDyAge || '')
+    .replaceAll('{{喜用神}}', yongshenText)
+    .replaceAll('{{喜用神五行}}', yongshenText)
+    .replaceAll('{{喜神／忌神}}', isStrong ? '能量偏旺，需要用金、水、木來疏通和平衡' : '能量需要被補足，適合靠近能支持日主的五行')
+    .replaceAll('{{忌神}}', strongLabel === '身強' ? '印、比劫' : '財、官星、食傷')
+    .replace(/平級聤/g, '平級聊')
+    .replace(/官殺/g, '官星')
+    .replace(/擺放馬虎狗羊蛇(?:駝)?陶土小物/g, '擺放【馬、虎、狗、羊、蛇】等陶土小物')
+    .replace(/馬虎狗羊蛇(?:駝)?陶土小物/g, '【馬、虎、狗、羊、蛇】等陶土小物')
+    .replace(/馬虎狗羊蛇/g, '馬、虎、狗、羊、蛇')
+    .replace(/多聤/g, '多聊')
+    .replace(/咊啊/g, '咖啡')
+    .replace(/咊咊/g, '咖啡')
+    .replace(/靚聘/g, '績效')
+    .replace(/嫨嫗/g, '抱怨')
+    .replace(/滚水球/g, '滾水球')
+    .replace(/如果你的命盤呈現「命主輸出規則」，?/g, '')
+    .replace(/如果你的命盤呈現「延伸推算」，?/g, '')
+    .replace(/如果你的命盤呈現「延伸定義」，?/g, '')
+    .replace(/如果你的命盤呈現「延伸特質」，?/g, '')
+    .replace(/如果你的命盤呈現「適用條件」，?/g, '')
+    .replace(/如果你的命盤呈現「可能盲點」，?/g, '')
+    .replace(/如果你的命盤呈現「步驟5 判斷結果」，?/g, '')
+    .replace(/如果你的命盤呈現「綜合結論」，?/g, '')
+    .replace(/如果你的命盤呈現「([^」]+)」，?/g, '以「$1」來看，')
+    .replace(/命主輸出規則/g, '你的命盤')
+    .replace(/今年固定輸出為/g, '今年是')
+    .replace(/再說明/g, '重點在於')
+    .replace(/這會是比較合適的調整方向，不用一次全部做到，先從生活中最容易落實的一件事開始就好。?/g, '')
+    .replace(/順勢的時候可以積極把握，需要留意的時候則放慢腳步，讓自己保有調整空間。?/g, '')
+    .replace(/會是你比較明顯的互動傾向。理解這一點後，你會更知道怎麼表達需要，也更容易和伴侶找到舒服的相處節奏。?/g, '')
+    .replace(/以2026丙午年的丙火及午火藏干相對/g, '以2026丙午年的丙火與午火藏干，對照')
+    .replace(/換算流年十神，分開呈現天干主事件與地支主環境的作用，並判斷屬/g, '來看流年十神；天干偏事件，地支偏環境，整體屬於')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeQueryKey(query_key){
+  const variants = [query_key || {}];
+  if(query_key?.element) variants.push({...query_key, variant: query_key.element});
+  if(query_key?.variant) variants.push({...query_key, element: query_key.variant});
+  return variants.map(key => Object.fromEntries(Object.entries(key).filter(([,v]) => v !== undefined && v !== '')));
+}
+
+function queryKnowledge(kb, subItems, query_keys = [{}], limit = 1){
+  if(!kb || !kb.knowledge_base) return [];
+  const names = Array.isArray(subItems) ? subItems : [subItems];
+  const keys = (Array.isArray(query_keys) ? query_keys : [query_keys]).flatMap(normalizeQueryKey);
+  const matches = [];
+  for(const entry of kb.knowledge_base){
+    if(!names.includes(entry.sub_item)) continue;
+    const ok = keys.some(key => Object.entries(key).every(([k,v]) => entry.query_key && entry.query_key[k] === v));
+    if(ok && entry.content && !matches.some(item => item.content === entry.content)) matches.push(entry);
+    if(matches.length >= limit) break;
+  }
+  return matches;
+}
+
+function qSmart(kb, subItems, query_keys, fallback = ''){
+  return personalizeContent(queryKnowledge(kb, subItems, query_keys, 1)[0]?.content || fallback);
+}
+
+function qSmartMany(kb, specs, limit = 6){
+  const rows = [];
+  for(const spec of specs){
+    const entries = queryKnowledge(kb, spec.subItems, spec.query_keys || [{}], spec.limit || 1);
+    for(const entry of entries){
+      const content = personalizeContent(entry.content);
+      if(content && !rows.includes(content)) rows.push(content);
+      if(rows.length >= limit) return rows;
+    }
+  }
+  return rows;
+}
+
+function tenGodFamily(shen){
+  if(['正財','偏財'].includes(shen)) return '財星';
+  if(['正官','七殺'].includes(shen)) return '官星';
+  if(['食神','傷官'].includes(shen)) return '食傷';
+  if(['正印','偏印'].includes(shen)) return '印';
+  if(['比肩','劫財'].includes(shen)) return '比劫';
+  return shen || '';
+}
+
+function balanceTenGodKey(strength, shen){
+  const family = tenGodFamily(shen);
+  if(strength === '身強') return ['財星','官星','食傷'].includes(family) ? '食傷' : '比劫';
+  return ['印','比劫'].includes(family) ? '比劫' : '食傷';
+}
+
+function cleanTeacherPoint(text){
+  if(!text) return '';
+  return text
+    .replace(/^[^：:]+[：:]/,'')
+    .replace(/^你的?/, '')
+    .trim();
+}
+
+function escapeHtml(text){
+  return String(text || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function compactTeacherText(text, maxLen = 150){
+  const cleaned = personalizeContent(text || '')
+    .replace(/^依據[^：:]{1,30}[：:]/, '')
+    .replace(/延伸推算[：:]/g, '')
+    .replace(/延伸整理[：:]/g, '')
+    .replace(/；/g, '； ');
+  return cleaned.length > maxLen ? cleaned.slice(0, maxLen) + '…' : cleaned;
+}
+
+function teacherName(view){
+  if(view.source_code === 'B_FS' || view.teacher === '課程B') return '其他風水課程';
+  return view.teacher || '老師';
+}
+
+function teacherRelevantPoints(view, query_key = {}, maxPoints = 3){
+  const values = Object.values(query_key).filter(v => v !== undefined && v !== '').map(String);
+  const rawPoints = Array.isArray(view.key_points) && view.key_points.length
+    ? view.key_points
+    : [view.interpretation || ''];
+  let points = rawPoints
+    .map(point => compactTeacherText(point, 120))
+    .filter(Boolean)
+    .filter(point => !point.includes('{{'))
+    .filter(point => !point.includes('天干五合'));
+  if(values.length){
+    const matched = points.filter(point => values.some(v => point.includes(v)));
+    if(matched.length) points = matched;
+    else return [];
+  }
+  const seen = new Set();
+  return points.filter(point => {
+    if(seen.has(point)) return false;
+    seen.add(point);
+    return true;
+  }).slice(0, maxPoints);
+}
+
+function teacherPoint(kb, question, query_key, needle){
+  if(!kb || !Array.isArray(kb.questions)) return '';
+  const q = kb.questions.find(item =>
+    item.question === question &&
+    Array.isArray(item.query_keys) &&
+    item.query_keys.some(key =>
+      Object.entries(query_key).every(([k,v]) => key.query_key && key.query_key[k] === v)
+    )
+  );
+  if(!q || !q.teacher_interpretations) return '';
+  for(const view of Object.values(q.teacher_interpretations)){
+    const points = view.key_points || [];
+    const matched = points.find(point => !needle || point.includes(needle));
+    if(matched) return cleanTeacherPoint(matched);
+  }
+  return '';
+}
+
+function teacherViewBlock(kb, question, query_key = {}, limit = 2, options = {}){
+  if(!kb || !Array.isArray(kb.questions)) return '';
+  const q = kb.questions.find(item => {
+    if(item.question !== question) return false;
+    if(!Object.keys(query_key).length) return true;
+    return Array.isArray(item.query_keys) && item.query_keys.some(key =>
+      Object.entries(query_key).every(([k,v]) => key.query_key && key.query_key[k] === v)
+    );
+  });
+  if(!q || !q.teacher_interpretations) return '';
+  const seenText = new Set();
+  const rows = Object.values(q.teacher_interpretations)
+    .filter(view => view.interpretation && !view.interpretation.includes('未找到可直接或合理延伸'))
+    .filter(view => options.includeOtherCourses || view.source_code !== 'B_FS')
+    .map(view => {
+      const points = teacherRelevantPoints(view, query_key, options.maxPoints || 3)
+        .filter(point => {
+          const key = point.replace(/\s+/g, '');
+          if(seenText.has(key)) return false;
+          seenText.add(key);
+          return true;
         });
-        return parts.filter(Boolean).join("\n\n");
+      if(!points.length) return '';
+      return `<div class="teacher-source"><strong>${teacherName(view)}${view.domain ? '（'+view.domain+'）' : ''}</strong><ul class="action-list">${points.map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul></div>`;
+    })
+    .filter(Boolean)
+    .slice(0, limit);
+  if(!rows.length) return '';
+  return `<div class="teacher-view"><div class="teacher-view-title">${options.title || '老師觀點依據（精選）'}</div>${rows.join('')}</div>`;
+}
+
+function teacherCombinedBlock(kb, items, options = {}){
+  if(!kb || !Array.isArray(kb.questions)) return '';
+  const seenText = new Set();
+  const groups = new Map();
+  for(const item of items){
+    const q = kb.questions.find(qItem => qItem.question === item.question);
+    if(!q || !q.teacher_interpretations) continue;
+    for(const view of Object.values(q.teacher_interpretations)){
+      if(!view.interpretation || view.interpretation.includes('未找到可直接或合理延伸')) continue;
+      if(!options.includeOtherCourses && view.source_code === 'B_FS') continue;
+      const points = teacherRelevantPoints(view, item.query_key || {}, item.maxPoints || 2);
+      for(const point of points){
+        const key = (view.source_code || view.teacher) + point.replace(/\s+/g, '');
+        if(seenText.has(key)) continue;
+        seenText.add(key);
+        const label = `${teacherName(view)}${view.domain ? '（'+view.domain+'）' : ''}`;
+        if(!groups.has(label)) groups.set(label, []);
+        groups.get(label).push(point);
       }
+    }
+  }
+  const rows = [...groups.entries()].slice(0, options.limit || 2).map(([label, points]) =>
+    `<div class="teacher-source"><strong>${label}</strong><ul class="action-list">${points.slice(0, options.maxPoints || 3).map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul></div>`
+  );
+  if(!rows.length) return '';
+  return `<div class="teacher-view"><div class="teacher-view-title">${options.title || '老師觀點依據（精選）'}</div>${rows.join('')}</div>`;
+}
 
-      function infoToErrorDraft(errors) {
-        return errors.map((error) => `常見錯誤：${error.title}\n解法：${error.fix}`).join("\n\n");
-      }
+function actionList(text){
+  if(!text) return '';
+  const cleaned = personalizeContent(text);
+  const colonIndex = Math.max(cleaned.indexOf('：'), cleaned.indexOf(':'));
+  const prefix = colonIndex > -1 ? cleaned.slice(0, colonIndex + 1) : '';
+  const body = colonIndex > -1 ? cleaned.slice(colonIndex + 1) : cleaned;
+  const seen = new Set();
+  const parts = body
+    .split(/[、，；;]/)
+    .map(s => s.trim().replace(/^對你來說，?/, '').replace(/^當你的命盤以「[^」]+」為主要能量時，?/, ''))
+    .filter(Boolean)
+    .filter(item => !item.includes('不用一次全部做到'))
+    .filter(item => {
+      const key = item.replace(/\s+/g, '');
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 8);
+  if(parts.length < 3) return cleaned;
+  return `${prefix}<ul class="action-list">${parts.map(item => `<li>${item}</li>`).join('')}</ul>`;
+}
 
-      function setEditingMode(script) {
-        const info = splitRecordInfo(script.purpose || "");
-        editingId = script.id;
-        activeId = script.id;
-        fields.title.value = script.title;
-        fields.filename.value = script.filename;
-        fields.purpose.value = info.summary;
-        fields.note.value = info.note;
-        fields.errors.value = infoToErrorDraft(info.errors);
-        fields.steps.value = script.steps;
-        fields.code.value = script.code;
-        fields.tags.value = script.tags.join(", ");
-        document.getElementById("editBanner").hidden = false;
-        document.getElementById("cancelEditButton").hidden = false;
-        document.getElementById("saveButton").textContent = "更新";
-        setStatus(`正在編輯 ${script.filename}`);
-        render();
-      }
+function compactList(items){
+  const cleaned = (items || [])
+    .filter(Boolean)
+    .map(item => String(item).trim())
+    .filter(Boolean);
+  if(!cleaned.length) return '';
+  return `<ul class="action-list">${cleaned.map(item => `<li>${item}</li>`).join('')}</ul>`;
+}
 
-      function clearEditor() {
-        document.getElementById("editor").reset();
-        editingId = "";
-        document.getElementById("editBanner").hidden = true;
-        document.getElementById("cancelEditButton").hidden = true;
-        document.getElementById("saveButton").textContent = "保存";
-      }
+function focusItem(label, value, toneClass = ''){
+  if(!value) return '';
+  return `<div class="focus-item"><span class="focus-label">${label}</span><span class="focus-value ${toneClass}">${value}</span></div>`;
+}
 
-      function getFilteredScripts() {
-        const keyword = query.trim().toLowerCase();
-        if (!keyword) return scripts;
-        return scripts.filter((script) =>
-          [script.title, script.filename, script.purpose, script.steps, script.code, script.tags.join(" ")]
-            .join(" ")
-            .toLowerCase()
-            .includes(keyword)
-        );
-      }
+function reportTokenClass(token, coreTokens){
+  if(coreTokens.has(token)) return 'key-token key-token-core';
+  if(/腎臟|膀胱/.test(token)) return 'key-token key-water';
+  if(/脾胃|消化系統/.test(token)) return 'key-token key-health';
+  if(['偏印','正印','印星'].includes(token)) return 'key-token key-resource';
+  if(['財星','正財','偏財','劫財'].includes(token)) return 'key-token key-wealth';
+  if(['官星','正官','七殺','官殺'].includes(token)) return 'key-token key-career';
+  if(['食神','傷官','食傷'].includes(token)) return 'key-token key-output';
+  if(['配偶星','夫妻宮','婚姻宮','桃花'].includes(token)) return 'key-token key-love';
+  if(['身強','身弱','喜用神','忌神','用神'].includes(token)) return 'key-token key-strength';
+  return 'key-token';
+}
 
-      function setStatus(text) {
-        document.getElementById("status").textContent = text;
-      }
+function reportPhraseClass(phrase){
+  const text = String(phrase || '');
+  if(/財|金錢|收入|客戶|價格|收款|務實|現實資源/.test(text)) return 'key-wealth';
+  if(/偏印|正印|印星|資源、學習|學習|貴人|休息|內在整理|照顧|保護|安全感|進修|研究|宗教|藝術/.test(text)) return 'key-resource';
+  if(/官星|正官|七殺|官殺|職場|事業|工作|制度|名聲|升遷|文昌/.test(text)) return 'key-career';
+  if(/食神|傷官|食傷|表達|作品|享受|教學|輸出|創意/.test(text)) return 'key-output';
+  if(/配偶|夫妻|感情|桃花|婚姻|親密|伴侶|正緣/.test(text)) return 'key-love';
+  if(/腎臟|膀胱/.test(text)) return 'key-water';
+  if(/健康|脾胃|消化系統|病符|五黃/.test(text)) return 'key-health';
+  if(/身強|身弱|喜用神|忌神|用神/.test(text)) return 'key-strength';
+  return 'key-context';
+}
 
-      function getCalculatorState() {
-        const fps = Number.parseFloat(document.getElementById("fpsInput").value) || 30;
-        const parts = document
-          .getElementById("timecodeInput")
-          .value.trim()
-          .split(":")
-          .map((part) => Number.parseInt(part, 10));
-        const hours = parts[0] || 0;
-        const minutes = parts[1] || 0;
-        const seconds = parts[2] || 0;
-        const frames = parts[3] || 0;
-        const offset = hours * 3600 + minutes * 60 + seconds + frames / fps;
-        const rounded = Number.isFinite(offset) ? offset.toFixed(3) : "0.000";
-        return { fps, hours, minutes, seconds, frames, rounded };
-      }
+function protectReportPhrases(html, protectedPhrases){
+  const protect = phrase => {
+    const marker = `@@REPORT_PHRASE_${protectedPhrases.length}@@`;
+    protectedPhrases.push(`<span class="${reportPhraseClass(phrase)}">${phrase}</span>`);
+    return marker;
+  };
+  let output = html;
+  output = output.replace(/「([^」]{2,120})」/g, (_, phrase) => `「${protect(phrase)}」`);
+  output = output.replace(/(面對)([^，。；「」@]{2,60})(時)/g, (_, prefix, phrase, suffix) => `${prefix}${protect(phrase)}${suffix}`);
+  output = output.replace(/(偏向)([^，。；「」@]{2,80})/g, (_, prefix, phrase) => `${prefix}${protect(phrase)}`);
+  output = output.replace(/(適合)([^，。；「」@]{2,80})/g, (_, prefix, phrase) => `${prefix}${protect(phrase)}`);
+  output = output.replace(/(代表)([^，。；「」@]{2,80})/g, (_, prefix, phrase) => `${prefix}${protect(phrase)}`);
+  return output;
+}
 
-      function getSingleCommand() {
-        const { rounded } = getCalculatorState();
-        return `ffmpeg -i "第一支影片.mp4" -c:v copy -af "atrim=start=${rounded},asetpts=PTS-STARTPTS" -c:a aac -ar 48000 "測試輸出.mp4"`;
-      }
+function applyReportHighlights(html){
+  const highlightGroups = [
+    ['key-resource', [
+      '資源、學習、貴人、休息與內在整理',
+      '照顧、學習、資源與保護',
+      '資源學習',
+      '內在整理',
+      '獨立研究',
+      '偏印課題',
+      '安全感',
+      '偏印',
+      '正印',
+      '印星',
+      '資源',
+      '學習',
+      '貴人',
+      '休息',
+      '進修',
+      '研究',
+      '宗教',
+      '藝術'
+    ]],
+    ['key-wealth', [
+      '務實、金錢秩序、責任感與對現實資源的掌握',
+      '穩定收入',
+      '現實資源',
+      '金錢秩序',
+      '財星',
+      '正財',
+      '偏財',
+      '劫財',
+      '財位',
+      '招財',
+      '得財',
+      '破財',
+      '收入'
+    ]],
+    ['key-career', ['適合職業／職涯方向','適合職業','職涯方向','官星','正官','七殺','官殺','文昌','升遷','職場位置']],
+    ['key-output', [
+      '表達、作品、享受、教學與穩定輸出',
+      '內容輸出',
+      '食神',
+      '傷官',
+      '食傷',
+      '輸出'
+    ]],
+    ['key-love', ['配偶星','夫妻宮','感情','桃花','婚姻宮','婚姻','親密關係','伴侶','正緣']],
+    ['key-water', ['腎臟','膀胱']],
+    ['key-health', ['脾胃','消化系統','病符','五黃']],
+    ['key-strength', ['身強','身弱','喜用神','忌神','用神']],
+    ['key-context', [
+      '自我狀態、主見、核心需求與行動方式',
+      '現實壓力',
+      '現實環境',
+      '工作節奏',
+      '原生家庭',
+      '家族背景',
+      '父母手足',
+      '家人',
+      '父母',
+      '手足',
+      '安全感',
+      '務實',
+      '金錢秩序',
+      '責任感',
+      '外在環境',
+      '突發事件',
+      '內在心境',
+      '能量累積',
+      '同輩競爭',
+      '主見',
+      '行動力'
+    ]]
+  ];
+  const highlightTerms = highlightGroups
+    .flatMap(([className, words]) => words.map(word => ({ word, className })))
+    .filter(item => item.word)
+    .sort((a, b) => b.word.length - a.word.length);
+  if(!highlightTerms.length) return html;
+  const classByWord = new Map();
+  highlightTerms.forEach(item => {
+    if(!classByWord.has(item.word)) classByWord.set(item.word, item.className);
+  });
+  const escaped = highlightTerms.map(item => item.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const pattern = new RegExp(`(${escaped.join('|')})`, 'g');
+  return html.replace(pattern, match => `<span class="${classByWord.get(match)}">${match}</span>`);
+}
 
-      function getBatchCommand() {
-        const { rounded } = getCalculatorState();
-        return `mkdir -p 修正完成
-for f in *.mp4; do
-  ffmpeg -i "$f" -c:v copy -af "atrim=start=${rounded},asetpts=PTS-STARTPTS" -c:a aac -ar 48000 "修正完成/\${f%.mp4}_修正版.mp4"
-done`;
-      }
+function enhanceReportText(text){
+  if(!text) return '';
+  let html = String(text).replace(/官殺/g, '官星');
+  const coreTokens = new Set([riTg, riWx, riTg+riWx]);
+  const protectedTokens = [];
+  const protectedPhrases = [];
+  html = html.replace(/【([^】]+)】/g, (_, rawToken) => {
+    const token = String(rawToken).trim();
+    const marker = `@@REPORT_TOKEN_${protectedTokens.length}@@`;
+    protectedTokens.push(`<span class="${reportTokenClass(token, coreTokens)}">【${token}】</span>`);
+    return marker;
+  });
+  html = protectReportPhrases(html, protectedPhrases);
+  html = applyReportHighlights(html);
+  for(let pass = 0; pass < 3; pass++){
+    protectedPhrases.forEach((phraseHtml, index) => {
+      html = html.replaceAll(`@@REPORT_PHRASE_${index}@@`, phraseHtml);
+    });
+  }
+  protectedTokens.forEach((tokenHtml, index) => {
+    html = html.replace(`@@REPORT_TOKEN_${index}@@`, tokenHtml);
+  });
+  html = html.replace(/^([^：:]{2,14}[：:])/, '<span class="detail-label">$1</span>');
+  return html;
+}
 
-      async function copyText(text) {
-        if (navigator.clipboard) {
-          await navigator.clipboard.writeText(text);
-        } else {
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          ta.style.position = "fixed";
-          ta.style.left = "-9999px";
-          document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
-          document.execCommand("copy");
-          document.body.removeChild(ta);
-        }
-        setStatus("指令已複製");
-      }
+function renderReportText(text, className = 'report-detail'){
+  if(!text) return '';
+  const raw = String(text).trim();
+  if(!raw) return '';
+  if(raw.startsWith('<') || raw.includes('<ul') || raw.includes('<div')) return raw;
+  const sentences = raw
+    .split(/(?<=。)/)
+    .map(s => s.trim())
+    .filter(Boolean);
+  const parts = sentences.length > 1 && raw.length > 60 ? sentences : [raw];
+  return `<div class="${className}">${parts.map(part => `<p>${enhanceReportText(part)}</p>`).join('')}</div>`;
+}
 
-      function updateCalculator() {
-        const state = getCalculatorState();
-        document.getElementById("offsetOutput").textContent = state.rounded;
-        document.getElementById("calculationDetails").textContent =
-          `${state.hours} 小時 + ${state.minutes} 分 + ${state.seconds} 秒 + ${state.frames} 幀 / ${state.fps} fps = ${state.rounded} 秒`;
-      }
+// ── 從新知識庫取資料 ──
+const new_gexing   = qContent(kbNew, '內在性格',  {stem: riTg});
+const new_image    = qContent(kbNew, '外在形象',  {stem: riTg});
+const new_youshi   = qContent(kbNew, '優勢',      {stem: riTg});
+const new_mangdian = qContent(kbNew, '盲點',      {stem: riTg});
+const new_xiangz   = qSmart(kbNew, ['象徵','象徵意義'], {stem: riTg});
+const new_wxTrait  = qSmart(kbNew, ['五行人格特質','五行特質','個人命主五行'], [{variant: riWx},{element: riWx}]);
+const new_strength = qSmart(kbNew, ['身強的影響','身弱的影響','強弱判斷結果'], [{strength: strongLabel},{ten_god: balanceTenGodKey(strongLabel, curDyShen), strength: strongLabel}]);
+const new_xiyong   = qSmart(kbNew, ['喜神是什麼','喜用神'], [{strength: strongLabel},{ten_god: balanceTenGodKey(strongLabel, '食神'), strength: strongLabel}]);
+const new_jishen   = qSmart(kbNew, ['忌神是什麼','忌神'], [{strength: strongLabel},{ten_god: balanceTenGodKey(strongLabel, '比肩'), strength: strongLabel}]);
+const new_buyun    = qSmart(kbNew, ['用神補運方法','五行補強建議','五行補強'], [{variant: riWx},{element: riWx}]);
+const new_wuxing   = qSmart(kbNew, ['五行補強建議','五行補強'], [{variant: riWx},{element: riWx}]);
+const new_kaiyun   = qSmart(kbNew, ['開運物建議','開運物'], [{variant: riWx},{element: riWx}]);
+const teacher_inner = teacherPoint(teacherKB, '內在性格', {stem: riTg}, riTg+riWx);
+const teacher_image = teacherPoint(teacherKB, '外在形象', {stem: riTg}, riTg+riWx);
+const teacher_youshi = teacherPoint(teacherKB, '優勢', {stem: riTg}, riTg+riWx);
+const teacher_mangdian = teacherPoint(teacherKB, '盲點', {stem: riTg}, riTg+riWx);
+const curDyBalanceKey = balanceTenGodKey(strongLabel, curDyShen);
+const lyBalanceKey = balanceTenGodKey(strongLabel, lyStar);
+const curDyFamily = tenGodFamily(curDyShen);
+const lyFamily = tenGodFamily(lyStar);
+const caiFamilyKey = client.gender === '男' ? '財星' : '官殺';
+const dayunInsights = qSmartMany(kbNew, [
+  {subItems:'大運十神', query_keys:[{ten_god:curDyShen},{ten_god:curDyFamily}], limit:1},
+], 1);
+const liunianInsights = [];
+const wealthInsights = qSmartMany(kbNew, [
+  {subItems:['12-1 基本財運｜天生財運模式','天生財運模式'], query_keys:[{ten_god:'財星', strength:strongLabel},{ten_god:'財星'}], limit:1},
+  {subItems:['12-1 基本財運｜今年財運走勢','今年財運走勢'], query_keys:[{ten_god:lyBalanceKey, strength:strongLabel},{ten_god:'財星', strength:strongLabel},{scope:'general'}], limit:1},
+  {subItems:['12-1 基本財運｜得財方式','得財方式'], query_keys:[{ten_god:'財星'},{element:caiStar},{scope:'general'}], limit:1},
+  {subItems:['12-1 基本財運｜漏財原因分析','漏財原因分析'], query_keys:[{ten_god:'比劫', strength:strongLabel},{strength:strongLabel},{scope:'general'}], limit:1},
+  {subItems:['12-1 基本財運｜破財防範建議','破財防範建議'], query_keys:[{ten_god:'比劫', strength:strongLabel},{scope:'general'}], limit:1},
+], 5);
+const careerInsights = qSmartMany(kbNew, [
+  {subItems:['13-1 基本事業｜事業天賦','事業天賦'], query_keys:[{ten_god:curDyShen},{ten_god:curDyFamily},{scope:'general'}], limit:1},
+  {subItems:['13-1 基本事業｜今年事業走勢','今年事業走勢'], query_keys:[{ten_god:lyStar},{ten_god:lyFamily},{ten_god:lyBalanceKey, strength:strongLabel}], limit:1},
+  {subItems:['13-1 基本事業｜職場人際策略','職場人際策略'], query_keys:[{ten_god:curDyShen},{ten_god:curDyFamily},{scope:'general'}], limit:1},
+], 3);
+const loveInsights = qSmartMany(kbNew, [
+  {subItems:['14-1 感情基礎｜夫妻宮判斷（日支）','夫妻宮判斷（日支)','夫妻宮判斷（日支）','日柱（夫妻宮）'], query_keys:[{branch:riDz},{variant:'夫妻宮位置'},{variant:'日柱（花）'}], limit:1},
+  {subItems:['14-1 感情基礎｜夫妻星強弱','夫妻星強弱'], query_keys:[{ten_god:caiFamilyKey, strength:strongLabel}], limit:1},
+], 2);
+const healthInsights = qSmartMany(kbNew, [
+  {subItems:['五行體質', riWx+' → '+(WX_ORGAN[riWx]||'').replace('、','/'),'先天弱項臟腑'], query_keys:[{variant:riWx},{element:riWx},{scope:'general'}], limit:2},
+  {subItems:['健康預防建議','健康補運方法'], query_keys:[{variant:riWx},{element:riWx},{scope:'general'}], limit:2},
+  {subItems:['健康高風險時期','家人健康與家庭風險'], query_keys:[{ten_god:lyFamily},{element:riWx},{scope:'general'}], limit:1},
+], 5);
+const fengshuiInsights = qSmartMany(kbNew, [
+  {subItems:['今年流年風水（2026丙午年）','住宅風水（各空間）'], query_keys:[{year:CURRENT_YEAR, stem:lyTg},{variant:riWx},{scope:'general'}], limit:2},
+  {subItems:['喜用方位','喜用顏色','財位佈局','健康位佈局','事業位佈局'], query_keys:[{variant:riWx},{element:riWx},{strength:strongLabel},{scope:'general'}], limit:4},
+], 6);
+const XU_FS_LAYOUT = {
+  金:{
+    男:{wealth:'東南方、正東方、東北方、正北方', career:'正南方、東南方、西南方、東北方', wenchang:'東南方、東北方、西北方、正北方', peach:'東南方、正東方、東北方、西北方'},
+    女:{wealth:'東南方、正東方、東北方、正北方', career:'正南方、東南方、西南方、東北方', wenchang:'東南方、東北方、西北方、正北方', peach:'東南方、正東方、東北方、西北方'}
+  },
+  木:{
+    男:{wealth:'東南方、正南方、西南方、東北方、西北方', career:'西南方、正西方、東北方、西北方', wenchang:'正南方、東南方、西南方', peach:'西南方、正西方、東北方、西北方'},
+    女:{wealth:'東南方、正南方、西南方、東北方、西北方', career:'西南方、正西方、東北方、西北方', wenchang:'正南方、東南方、西南方', peach:'西南方、正西方、東北方、西北方'}
+  },
+  水:{
+    男:{wealth:'正南方、東南方、西南方、正東方', career:'正南方、東南方、西南方、東北方、西北方', wenchang:'東南方、正東方、東北方', peach:'正南方、東南方、西南方、東北方、西北方'},
+    女:{wealth:'正南方、東南方、西南方、正東方', career:'正南方、東南方、西南方、東北方、西北方', wenchang:'東南方、正東方、東北方', peach:'正南方、東南方、西南方、東北方、西北方'}
+  },
+  火:{
+    男:{wealth:'西南方、正西方、東北方、西北方', career:'正西方、東北方、西北方、正北方', wenchang:'正南方、東南方、西南方、東北方、西北方', peach:'西南方、正西方、東北方、西北方'},
+    女:{wealth:'西南方、正西方、東北方、西北方', career:'正西方、東北方、西北方、正北方', wenchang:'正南方、東南方、西南方、東北方、西北方', peach:'西南方、正西方、東北方、西北方'}
+  },
+  土:{
+    男:{wealth:'正西方、東北方、正北方、西北方', career:'東南方、正東方、東北方、正北方', wenchang:'正西方、東北方、西北方', peach:'東南方、正東方、東北方、正北方'},
+    女:{wealth:'正西方、東北方、正北方、西北方', career:'東南方、正東方、東北方、正北方', wenchang:'正西方、東北方、西北方', peach:'東南方、正東方、東北方、正北方'}
+  }
+};
+const xuFs = XU_FS_LAYOUT[riWx]?.[client.gender === '男' ? '男' : '女'] || {};
+const XU_WATER_TANK = {
+  金:'陶瓷或玻璃製，顏色以綠色、藍綠色較合適；水缸裡可以放水草。',
+  木:'陶瓷製，顏色可用紅色、橙色、黃色或土黃色；水缸裡可以放玉石石頭。',
+  水:'陶瓷或玻璃製，顏色以綠色較合適；水缸裡可以放水草。',
+  火:'陶瓷、玻璃或金屬製，顏色以白色、灰色較合適；水缸裡可以放銅幣或錢幣。',
+  土:'陶瓷或玻璃製，顏色以藍色、黑色、白色或灰色較合適；水缸裡可以放銅幣或錢幣。'
+};
+const XU_FS_REMEDIES = {
+  金:{
+    wealth:{items:'綠、藍綠色系地毯、燈具、水晶、翡翠、水缸或裝水玻璃杯、植栽、竹子、萬年青', zodiac:'虎、兔、龍、羊、豬', material:'木製材質'},
+    career:{items:'紅、黃、橘、綠色系地毯、同色系瓶身香氛蠟燭、燈具、紅／紫色鮮花', zodiac:'虎、蛇、馬、羊、狗', material:'木製材質或同色系生肖布偶'},
+    wenchang:{items:'藍、藍綠、黑色系地毯、水缸或裝水玻璃杯、同色系掛畫', zodiac:'鼠、龍、猴、豬', material:'玻璃、水晶材質或同色系生肖布偶'},
+    peach:{items:'綠、藍綠色系掛畫、地毯、燈具、水晶、翡翠、瓶身香氛與同色系床單枕套', zodiac:'虎、兔、龍、羊、豬', material:'木製材質'}
+  },
+  木:{
+    wealth:{items:'紅、橘、黃、土黃色系掛畫、水缸或裝水玻璃杯、天然玉石、陶土物件、紅／橘色地毯、紅／紫色鮮花與香氛、紅色燈具', zodiac:'牛、龍、蛇、馬、羊、狗', material:'陶瓷、玉石材質或同色系生肖布偶'},
+    career:{items:'白、灰、金、銀色系瓶身香氛、金／銀色燈具、金屬製鬧鐘、錢幣、風鈴、音樂盒', zodiac:'牛、蛇、猴、雞', material:'金屬材質'},
+    wenchang:{items:'紅、黃、橘色系地毯、掛畫、紅／紫色鮮花與香氛、紅色燈具', zodiac:'蛇、馬、羊、狗', material:'陶瓷、玉石材質或同色系生肖布偶'},
+    peach:{items:'白、灰、金、銀色系掛畫、地毯、燈具、白色瓶身香氛、金屬鬧鐘、錢幣、風鈴、音樂盒', zodiac:'牛、蛇、猴、雞', material:'金屬材質'}
+  },
+  水:{
+    wealth:{items:'紅、橘、黃、綠色系掛畫、陶瓷品、地毯、水缸或裝水玻璃杯、紅／紫色瓶身香氛與鮮花、紅色燈具、鹽燈、綠色植栽、萬年青、竹子、綠色水晶／翡翠', zodiac:'虎、蛇、馬、羊、狗', material:'木製材質或紅、黃、橘色系生肖布偶'},
+    career:{items:'紅、黃、橘、土黃色系地毯、紅／紫色鮮花與香氛蠟燭、紅色燈具、鹽燈、天然玉石、黃土色石頭', zodiac:'牛、龍、蛇、馬、羊、狗', material:'陶瓷、玉石材質'},
+    wenchang:{items:'綠、藍綠色系地毯、掛畫、綠色植栽、萬年青、竹子、綠色水晶、翡翠、燈具', zodiac:'虎、兔、龍、羊、豬', material:'木製材質或同色系生肖布偶'},
+    peach:{items:'紅、黃、橘、土黃色系掛畫、地毯、紅／紫色瓶身香氛、紅色燈具、鹽燈、天然玉石、陶土擺件', zodiac:'牛、龍、蛇、馬、羊、狗', material:'陶瓷、玉石材質'}
+  },
+  火:{
+    wealth:{items:'白、灰、金、銀色系掛畫、燈具、水缸或裝水玻璃杯、白色瓶身香氛、金屬鬧鐘、錢幣、風鈴、音樂盒', zodiac:'牛、蛇、猴、雞', material:'金屬製材質'},
+    career:{items:'藍、藍綠、黑、白、灰、金、銀色系地毯、燈具、白色鮮花／香氛蠟燭、金屬擺件', zodiac:'鼠、牛、龍、猴、雞、豬', material:'金屬、玻璃、水晶製材質'},
+    wenchang:{items:'紅、黃、橘、土黃色系地毯、掛畫、陶瓷、玉石、陶土物件、紅／紫／土黃色瓶身香氛、紅色燈具、鹽燈', zodiac:'牛、龍、蛇、馬、羊、狗', material:'陶瓷、玉石材質或同色系生肖布偶'},
+    peach:{items:'藍、藍綠、黑、白、灰、金、銀色系掛畫、地毯、同色系瓶身香氛、金屬擺品、水晶或裝水玻璃杯', zodiac:'鼠、牛、龍、猴、雞、豬', material:'金屬、玻璃、水晶材質'}
+  },
+  土:{
+    wealth:{items:'藍、藍綠、黑、白、灰、金、銀色系掛畫、水缸或裝水玻璃杯、白／灰／金／銀色燈具、白色瓶身香氛、金屬鬧鐘、錢幣、風鈴、音樂盒', zodiac:'鼠、牛、龍、猴、雞、豬', material:'金屬製材質'},
+    career:{items:'綠、藍綠色系鮮花、香氛蠟燭、水晶、翡翠、綠色燈具、木製品', zodiac:'虎、兔、龍、羊、豬', material:'木製材質'},
+    wenchang:{items:'白、灰、金、銀色系地毯、掛畫、燈具、鹽燈、白色系瓶身香氛、金屬鬧鐘、風鈴、音樂盒、錢幣', zodiac:'牛、蛇、猴、雞', material:'金屬製材質或同色系生肖布偶'},
+    peach:{items:'藍、藍綠、綠色系掛畫、地毯、燈具、同色系瓶身香氛、綠色水晶、翡翠、木製品', zodiac:'虎、兔、龍、羊、豬', material:'木製材質'}
+  }
+};
+const xuRemedies = XU_FS_REMEDIES[riWx] || {};
+const XU_WATER_COMMON = '長方形約60x30x30公分，或圓形直徑約40公分；不加蓋、不打燈，水量8～9分滿。水要乾淨流動，可用馬達、濾水器或定期換水；小空間可先用裝水玻璃杯，每天換水。';
+const XU_YEAR_WATER_NOTE = `${CURRENT_YEAR}年若搭配紫白飛星：一白在中宮、六白在正北，可評估小型動水；七赤在西南屬化洩情境，若使用活水要小而安靜；二黑在西北、五黃在正南，以安靜化煞為主，不放大型動水。`;
+const ZIBAI_2026 = [
+  {direction:'正東', star:'八白左輔星', theme:'旺財、權力、置業', action:'可保持明亮整潔，放存摺、地契、保險櫃、黃土色系物件或鹽燈。', tone:'tone-wealth'},
+  {direction:'中宮', star:'一白貪狼星', theme:'人緣、流動、名氣', action:'全屋中心保持通透，不堆雜物；若要用水意象，以小型、乾淨、可維護為主。', tone:'tone-love'},
+  {direction:'正北', star:'六白武曲星', theme:'偏財、貴人、權威', action:'適合用在工作、升遷、貴人與偏財布局，可放金屬、白灰色系或小型動水。', tone:'tone-career'},
+  {direction:'東北', star:'四綠文曲星', theme:'文昌、學習、考試', action:'適合書房、讀書、企劃與進修，可放綠色植物、文具、書籍。', tone:'tone-career'},
+  {direction:'東南', star:'九紫右弼星', theme:'喜慶、桃花、人氣', action:'適合人緣、曝光、喜事與合作，可用紅紫色系或花卉點亮。', tone:'tone-love'},
+  {direction:'正南', star:'五黃廉貞星', theme:'災煞、大凶', action:'宜靜不宜動，不鑽牆、不敲打、不放大型動水；以化煞、安靜、減少刺激為主。', tone:'tone-warn'},
+  {direction:'西北', star:'二黑巨門星', theme:'病符、健康壓力', action:'宜靜不宜動，避免紅黃綠刺激，可用金屬、白灰金色系化洩。', tone:'tone-health'},
+  {direction:'正西', star:'三碧祿存星', theme:'是非、口舌', action:'避免擴音、爭吵、過度動能；保持整潔安靜。', tone:'tone-warn'},
+  {direction:'西南', star:'七赤破軍星', theme:'破財、損失', action:'避免放大招財物與大型動水；若要化洩，採小型、安靜、可控的方式。', tone:'tone-warn'}
+];
+function splitZhList(text){
+  return String(text || '')
+    .split(/[、，／/]/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => s.replace(/^同色系/, '同色系'));
+}
+function uniqueJoined(list){
+  const seen = new Set();
+  return list.filter(item => {
+    const key = item.replace(/\s+/g, '');
+    if(!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).join('、');
+}
+function splitDirections(text){
+  return splitZhList(text).map(item => item.replace(/方$/, '方'));
+}
+function frequencySummary(groups, minCount = 2){
+  const count = new Map();
+  groups.forEach(group => {
+    const unique = [...new Set(group.filter(Boolean))];
+    unique.forEach(item => count.set(item, (count.get(item) || 0) + 1));
+  });
+  return [...count.entries()]
+    .filter(([,qty]) => qty >= minCount)
+    .sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-Hant'))
+    .map(([item, qty]) => `${item}（${qty}項重複）`);
+}
+function extractColors(text){
+  const colors = ['藍綠','土黃色','紅','橘','黃','綠','藍','黑','白','灰','金','銀','紫'];
+  return colors.filter(color => String(text || '').includes(color));
+}
+function xuOverlapSummary(){
+  const categories = [
+    {label:'財位', direction:xuFs.wealth, remedy:xuRemedies.wealth},
+    {label:'事業／貴人位', direction:xuFs.career, remedy:xuRemedies.career},
+    {label:'文昌／學習位', direction:xuFs.wenchang, remedy:xuRemedies.wenchang},
+    {label:'桃花／人緣位', direction:xuFs.peach, remedy:xuRemedies.peach}
+  ].filter(item => item.direction && item.remedy);
+  const readableDirectionLabels = labels => {
+    const words = labels.flatMap(label => {
+      if(label === '財位') return ['財位'];
+      return label
+        .replace(/位/g, '')
+        .split(/[／/+＋]/)
+        .map(word => word.trim())
+        .filter(Boolean);
+    });
+    const unique = [...new Set(words)];
+    return `${unique.join('、')}位牽動`;
+  };
+  const directionRows = categories.flatMap(cat => splitDirections(cat.direction).map(direction => ({direction, label:cat.label})));
+  const directionMap = new Map();
+  directionRows.forEach(({direction, label}) => {
+    if(!directionMap.has(direction)) directionMap.set(direction, []);
+    directionMap.get(direction).push(label);
+  });
+  const sharedDirections = [...directionMap.entries()]
+    .filter(([,labels]) => labels.length >= 2)
+    .sort((a,b) => b[1].length - a[1].length || a[0].localeCompare(b[0], 'zh-Hant'))
+    .map(([direction, labels]) => `${direction}：${readableDirectionLabels(labels)}`);
+  const sharedItems = frequencySummary(categories.map(cat => splitZhList(cat.remedy.items)), 2);
+  const sharedZodiac = frequencySummary(categories.map(cat => splitZhList(cat.remedy.zodiac)), 2);
+  const sharedMaterials = frequencySummary(categories.map(cat => splitZhList(cat.remedy.material)), 2);
+  const sharedColors = frequencySummary(categories.map(cat => extractColors(cat.remedy.items)), 2);
+  return {sharedDirections, sharedItems, sharedZodiac, sharedMaterials, sharedColors};
+}
+function xuCombinedRemedyHtml(){
+  const remedies = Object.values(xuRemedies || {});
+  if(!remedies.length) return '';
+  const overlap = xuOverlapSummary();
+  return `
+    <div class="summary-panel">
+      <div class="summary-panel-title">徐玉蘭老師${riWx}命軟裝綜合版</div>
+      ${compactList([
+        overlap.sharedDirections.length ? `重複方位：${overlap.sharedDirections.join('；')}` : '',
+        overlap.sharedColors.length ? `重複顏色：${overlap.sharedColors.join('、')}` : '',
+        overlap.sharedItems.length ? `重複添運物品：${overlap.sharedItems.slice(0, 18).join('、')}` : '',
+        overlap.sharedZodiac.length ? `重複生肖擺件：${overlap.sharedZodiac.join('、')}` : '',
+        overlap.sharedMaterials.length ? `重複材質：${overlap.sharedMaterials.join('、')}` : '',
+        `使用方式：先選你真正要加強的主題；若同一方位同時出現在多個主題，就可以優先整理那個方位，再放少量、好維護的物品。`
+      ])}
+    </div>
+  `;
+}
+function fengshuiIntegratedHtml(){
+  const overlap = xuOverlapSummary();
+  const topDirections = overlap.sharedDirections.slice(0, 4).join('；') || '依四格明細選方位';
+  return `
+    <div class="summary-panel">
+      <div class="summary-panel-title">三位老師統整版：先照這個做</div>
+      ${compactList([
+        `先定主題：求財或招財水缸，優先看徐玉蘭老師的土命財位【${xuFs.wealth || '需查表'}】；若要疊加${CURRENT_YEAR}流年，正東偏財置業、正北偏財貴人可以一起評估。`,
+        `重複方位優先整理：${topDirections}。同一方位同時出現在多個主題時，先整理那裡，不用四個主題全部擺滿。`,
+        `擺放規則用湯鎮瑋老師：財位要乾淨、明亮、不受壓，擺件控制在3～5樣內；不把招財物一次堆滿。`,
+        `主題分類用尹森老師：正財看穩定收入與事業資源，次財看貴人、投資與偏財機會，桃花位看人緣魅力與互動。`,
+        `水缸只優先放財位或可動水的流年吉位；正南五黃、西北二黑、正西三碧、西南七赤今年先安靜，不放大型動水。`
+      ])}
+    </div>
+  `;
+}
+function zibai2026Html(){
+  const order = ['東南','正南','西南','正東','中宮','正西','東北','正北','西北'];
+  const map = Object.fromEntries(ZIBAI_2026.map(item => [item.direction, item]));
+  return `
+    <div class="summary-panel">
+      <div class="summary-panel-title">${CURRENT_YEAR}紫白飛星九宮格</div>
+      <div class="zibai-grid">
+        ${order.map(direction => {
+          const item = map[direction];
+          if(!item) return '';
+          return `<div class="zibai-cell"><span class="zibai-direction">${direction}</span><span class="zibai-star ${item.tone}">${item.star}｜${item.theme}</span><span class="zibai-action">${item.action}</span></div>`;
+        }).join('')}
+      </div>
+      ${compactList([
+        '看法很簡單：先找家中對應方位，再看該格是適合催旺、適合讀書工作，還是要安靜避動。',
+        '正南五黃、西北二黑、正西三碧、西南七赤先不要急著放大型動水或強烈招財物；正東、正北、東北、東南則可依需求溫和啟動。'
+      ])}
+    </div>
+  `;
+}
+function fengshuiEvidenceHtml(){
+  return `
+    <details class="teacher-accordion">
+      <summary>老師判斷依據（空間篇，已篩選）</summary>
+      <div class="teacher-view">
+      <div class="teacher-source"><strong>徐玉蘭老師（${riWx}命軟裝表）</strong>
+        ${compactList([
+          `${riWx}命財位：${xuFs.wealth || '需查表'}；水缸材質：${XU_WATER_TANK[riWx] || '需查表'}`,
+          `${CURRENT_YEAR}紫白飛星：正東八白旺財、正北六白偏財貴人、東北四綠文昌、東南九紫喜慶；正南五黃、西北二黑宜靜。`
+        ])}
+      </div>
+      <div class="teacher-source"><strong>湯鎮瑋老師（通用財位規則）</strong>
+        ${compactList([
+          '明財位在大門斜對角45度，忌見空、壓樑、對廁所；財位需乾淨整潔，擺設不超過3～5樣。',
+          `${CURRENT_YEAR}年主要財位看正東八白，偏財／貴人可看正北六白。`
+        ])}
+      </div>
+      <div class="teacher-source"><strong>尹森老師（通用財位／桃花位規則，非土命專屬）</strong>
+        ${compactList([
+          '正財位掌管正財、事業、房產與開創能量；次財位掌管貴人、投資與偏財機會。',
+          '桃花位重點是人緣、魅力與互動，不等於每個人都要用同一套土命方位。'
+        ])}
+      </div>
+      </div>
+    </details>
+  `;
+}
+const waterTankInsights = qSmartMany(kbNew, [
+  {subItems:'水缸佈置說明', query_keys:{element:riWx}, limit:1},
+  {subItems:'水缸佈置說明', query_keys:{scope:'general'}, limit:1},
+  {subItems:'水缸佈置說明', query_keys:{year:CURRENT_YEAR}, limit:1},
+], 3);
+function xuRemedyDetail(label, direction, remedy, toneClass = ''){
+  if(!direction || !remedy) return '';
+  return `
+    <div class="focus-item">
+      <span class="focus-label">${label}</span>
+      <span class="focus-value ${toneClass}">${direction}</span>
+      <ul class="action-list">
+        <li><strong>添運物品：</strong>${remedy.items || '需查表'}</li>
+        <li><strong>生肖擺件：</strong>${remedy.zodiac || '需查表'}</li>
+        <li><strong>材質建議：</strong>${remedy.material || '需查表'}</li>
+      </ul>
+    </div>
+  `;
+}
+const waterPlacementHtml = `
+  ${fengshuiIntegratedHtml()}
+  <div class="summary-panel">
+    <div class="summary-panel-title">徐玉蘭老師五行命主方位（明細保留）</div>
+    <div class="focus-grid">
+      ${xuRemedyDetail('財位／招財水缸', xuFs.wealth || '需查表', xuRemedies.wealth, 'tone-wealth')}
+      ${xuRemedyDetail('事業／貴人位', xuFs.career || '需查表', xuRemedies.career, 'tone-career')}
+      ${xuRemedyDetail('文昌／學習位', xuFs.wenchang || '需查表', xuRemedies.wenchang, 'tone-career')}
+      ${xuRemedyDetail('桃花／人緣位', xuFs.peach || '需查表', xuRemedies.peach, 'tone-love')}
+    </div>
+    ${compactList([
+      `招財水缸優先放在財位【${xuFs.wealth || '需查表'}】；若有多個財位，先選家中最乾淨、明亮、不受壓且方便維護水質的位置。`,
+      `水缸材質與顏色：${XU_WATER_TANK[riWx] || waterTankInsights[0] || '需依五行命主選材質與添運色彩。'}`,
+      `共通設置：${XU_WATER_COMMON}`
+    ])}
+  </div>
+  ${xuCombinedRemedyHtml()}
+  ${zibai2026Html()}
+`;
 
-      function bindCalculator() {
-        document.getElementById("fpsInput").addEventListener("input", updateCalculator);
-        document.getElementById("timecodeInput").addEventListener("input", updateCalculator);
-        document.getElementById("copySingleCommand").addEventListener("click", () => copyText(getSingleCommand()));
-        document.getElementById("copyBatchCommand").addEventListener("click", () => copyText(getBatchCommand()));
-        updateCalculator();
-      }
+// ── 個人化卡片 ──
+function personalCard({icon,title,id,personalSummary,details,tags}){
+  const detailsHtml=(details||[]).filter(Boolean).map(d=>{
+    const html = String(d);
+    return renderReportText(html);
+  }).join('');
+  return `
+    <div class="kb-card">
+      <div class="kb-card-title">
+        ${icon||''} ${title}
+      </div>
+      <div class="kb-content">
+        ${personalSummary ? renderReportText(personalSummary, 'report-summary') : ''}
+        ${detailsHtml?`<div class="kb-talk-details">${detailsHtml}</div>`:''}
+      </div>
+    </div>
+  `;
+}
 
-      function render() {
-        const filtered = getFilteredScripts();
-        const active = scripts.find((script) => script.id === activeId) || filtered[0] || scripts[0];
-        document.getElementById("countLabel").textContent = `${scripts.length} 筆資料`;
+// ── 折疊區塊 ──
+function section(icon, title, bodyHtml, open=false){
+  return `
+    <details class="kb-section" ${open?'open':''}>
+      <summary>${icon} ${title}</summary>
+      <div class="section-body">${bodyHtml}</div>
+    </details>
+  `;
+}
 
-        document.getElementById("scriptList").innerHTML = filtered.length
-          ? filtered
-              .map(
-                (script) => `
-                  <button class="script-row ${active?.id === script.id ? "active" : ""}" data-id="${escapeHtml(script.id)}" type="button">
-                    <span><strong>${escapeHtml(script.title)}</strong><small>${escapeHtml(script.filename)}</small></span>
-                    <time>${formatDate(script.updatedAt)}</time>
-                  </button>
-                `
-              )
-              .join("")
-          : '<div class="empty-state">沒有符合的腳本</div>';
+// ① 日主特質
+const sec1Html = personalCard({
+  icon:'🌟', title:'日主【'+riTg+'】與五行【'+riWx+'】特質分析', id:'BAZI_001',
+  personalSummary:'親愛的'+client.name+'，從你的命盤來看，你的日主天干是【'+riTg+riWx+'】，屬於'+yinYang+riWx+'。'+(new_gexing||teacher_inner||''),
+  details:[
+    new_wxTrait ? '從五行來看，你帶著【'+riWx+'】的底色：'+new_wxTrait : '',
+    '你的日主天干是【'+riTg+riWx+'】，屬於'+yinYang+riWx+'，所以表達方式通常'+(isYang?'比較主動、直接，也比較容易把想法放到檯面上。':'比較內斂、細膩，很多感受會先在心裡消化。'),
+    '月支落在【'+yueDz+'】，五行屬【'+yueDzWx+'】，所以這張命盤先看作【'+strongLabel+'】來解讀。',
+    yueStar ? '月干十神是【'+yueStar+'】，這會影響你面對家人、資源與現實壓力時的反應方式。' : '',
+    new_image || teacher_image ? '別人第一眼感受到的你：'+(new_image||teacher_image) : '',
+    new_youshi || teacher_youshi ? '你值得好好使用的優勢：'+(new_youshi||teacher_youshi) : '',
+    new_mangdian || teacher_mangdian ? '要稍微留意的地方：'+(new_mangdian||teacher_mangdian) : '',
+    new_xiangz ? '更深一層來說，'+new_xiangz : '',
+    teacherCombinedBlock(teacherKB, [
+      {question:'內在性格', query_key:{stem:riTg}, maxPoints:2},
+      {question:'外在形象', query_key:{stem:riTg}, maxPoints:1},
+      {question:'優勢', query_key:{stem:riTg}, maxPoints:1},
+      {question:'盲點', query_key:{stem:riTg}, maxPoints:1},
+      {question:'五行人格特質', query_key:{variant:riWx}, maxPoints:1}
+    ], {title:'老師觀點依據（日主精選）', limit:3, maxPoints:4}),
+  ].filter(Boolean),
+  tags:['日主'+riTg, riWx, yinYang, strongLabel]
+});
 
-        if (!active) {
-          document.getElementById("detailPanel").innerHTML = '<div class="empty-state">尚未保存任何腳本</div>';
-          return;
-        }
+// ② 五行人格特質
+const sec2Html = personalCard({
+  icon:'🌊', title:'五行【'+riWx+'】人格特質', id:'BAZI_003',
+  personalSummary:client.name+'，你的日主五行屬【'+riWx+'】。'+(new_wxTrait||'這代表你看世界的方式，會帶著這個五行的節奏。'),
+  details:[],
+  tags:[riWx+'行','人格特質']
+});
 
-        const info = splitRecordInfo(active.purpose || "");
-        const noteHtml = info.note
-          ? `<details class="info-details"><summary>備註</summary><p>${escapeHtml(info.note)}</p></details>`
-          : "";
-        const errorsHtml = info.errors.length
-          ? `<details class="info-details"><summary>常見錯誤</summary><div class="error-list">${info.errors
-              .map((error) => `<div><strong>${escapeHtml(error.title)}</strong><p>${escapeHtml(error.fix)}</p></div>`)
-              .join("")}</div></details>`
-          : "";
-        const calculatorHtml =
-          active.id === "sync-timecode-calculator-flow"
-            ? `<details class="info-details calculator-details">
-                <summary>剪映時間碼計算機</summary>
-                <div class="calculator-panel" aria-label="剪映時間碼計算機">
-                  <label>
-                    幀率
-                    <select id="fpsInput">
-                      <option value="23.976">23.976 fps</option>
-                      <option value="24">24 fps</option>
-                      <option value="25">25 fps</option>
-                      <option value="29.97">29.97 fps</option>
-                      <option value="30" selected>30 fps</option>
-                      <option value="50">50 fps</option>
-                      <option value="59.94">59.94 fps</option>
-                      <option value="60">60 fps</option>
-                    </select>
-                  </label>
-                  <label>剪映時間碼<input id="timecodeInput" value="00:00:01:13" placeholder="HH:MM:SS:FF" /></label>
-                  <div class="calculator-result"><span>ffmpeg 秒數</span><strong id="offsetOutput">1.433</strong></div>
-                  <div class="calculator-actions">
-                    <button class="secondary-action" id="copySingleCommand" type="button">複製單支測試指令</button>
-                    <button class="secondary-action" id="copyBatchCommand" type="button">複製批量處理指令</button>
-                  </div>
-                  <details class="info-details compact-details">
-                    <summary>計算細節</summary>
-                    <p id="calculationDetails">0 小時 + 0 分 + 1 秒 + 13 幀 / 30 fps = 1.433 秒</p>
-                  </details>
-                </div>
-              </details>`
-            : "";
-        const codeHtml = active.code
-          ? `<section class="code-block">
-              <div><h4>程式碼 / 指令</h4><button data-copy="${escapeHtml(active.id)}" type="button">複製程式碼</button></div>
-              <pre>${escapeHtml(active.code)}</pre>
-            </section>`
-          : "";
-        const fileActionsHtml = active.code
-          ? `<button data-download="${escapeHtml(active.id)}" type="button">下載檔案</button>
-              <button data-copy="${escapeHtml(active.id)}" type="button">複製</button>`
-          : "";
+// ③ 四柱宮位
+const GONG_NAME = {nian:'年柱（祖先宮）',yue:'月柱（父母／事業宮）',ri:'日柱（夫妻宮）',shi:'時柱（子女／晚年宮）'};
+const GONG_FOCUS = {
+  nian:'看原生家庭、長輩資源、早年環境，也能觀察你對家族期待的承接方式。',
+  yue:'是整張盤很重要的位置，會牽動父母、手足、工作節奏與現實壓力。',
+  ri:'這是你自己與伴侶的位置，重點在自我狀態、親密關係與婚姻互動。',
+  shi:'看晚年、子女、作品成果，也能觀察你把能力留給世界的方式。'
+};
+function gongJudgement(key, shen, wx){
+  const shenText = {
+    正印:'偏向照顧、學習、資源與保護，也容易重視安全感。',
+    偏印:'偏向研究、直覺、非典型學習與獨處思考。',
+    正財:'偏向務實、金錢秩序、責任感與對現實資源的掌握。',
+    偏財:'偏向機會、人脈、彈性收入與對外開拓。',
+    正官:'偏向規矩、責任、名聲、制度與被要求。',
+    七殺:'偏向壓力、挑戰、競爭、行動力與危機處理。',
+    食神:'偏向表達、作品、享受、教學與穩定輸出。',
+    傷官:'偏向創意、反應、突破、表達慾與不喜被管。',
+    比肩:'偏向自我、主見、同輩競爭與獨立性。',
+    劫財:'偏向朋友、分資源、合作競爭與財務流動。'
+  }[shen] || '這一柱以日主自身狀態為主。';
+  const roleText = {
+    nian:'放在年柱，表示早年與家族背景容易帶著這種氣質。',
+    yue:'放在月柱，表示現實環境、工作節奏與父母手足對你影響很深。',
+    ri:'放在日柱，表示這是你自己與親密關係最核心的互動方式。',
+    shi:'放在時柱，表示晚年、子女、作品成果或長期累積會帶出這種能量。'
+  }[key] || '';
+  return `${roleText}${shenText}這個位置會讓「${tenGodImpact(shen)}」，所以不是只列五行，而是直接看它怎麼影響這個人生宮位。`;
+}
+const GONG_DATA = [
+  {key:'nian',data:bazi['年柱']||{}},
+  {key:'yue', data:bazi['月柱']||{}},
+  {key:'ri',  data:bazi['日柱']||{}},
+  {key:'shi', data:bazi['时柱']||{}}
+];
+const sec3Html = personalCard({
+  icon:'🏛', title:'四柱宮位解析', id:'BAZI_012',
+  personalSummary:client.name+'，你的四柱重點如下：年柱看原生家庭，月柱看現實環境與工作節奏，日柱看自己與親密關係，時柱看晚年、子女與成果。',
+  details:GONG_DATA.map(({key,data})=>{
+    const tg  = data['天干']?.['天干']||'';
+    const dz  = data['地支']?.['地支']||'';
+    const shen= toTrad(data['天干']?.['十神']||'');
+    const wx = WX_MAP[tg] || WX_MAP[dz] || '';
+    return GONG_NAME[key]+'是【'+tg+dz+'】，十神為【'+(shen||'日主')+'】。'+gongJudgement(key, shen || '日主', wx);
+  }),
+  tags:['年柱','月柱','日柱','時柱','宮位']
+});
 
-        document.getElementById("detailPanel").innerHTML = `
-          <div class="detail-heading">
-            <div>
-              <p class="eyebrow">${escapeHtml(active.filename)}</p>
-              <h3>${escapeHtml(active.title)}</h3>
-            </div>
-            <div class="detail-actions">
-              <button data-edit="${escapeHtml(active.id)}" type="button">編輯</button>
-              ${fileActionsHtml}
-              <button data-delete="${escapeHtml(active.id)}" type="button">刪除</button>
-            </div>
-          </div>
-          <div class="tag-row">${active.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
-          <section class="note-block"><h4>用途</h4><p>${escapeHtml(info.summary || "尚未填寫")}</p></section>
-          <section class="note-block"><h4>步驟</h4><pre>${escapeHtml(active.steps || "尚未填寫")}</pre></section>
-          ${calculatorHtml}
-          ${noteHtml}
-          ${errorsHtml}
-          ${codeHtml}
-        `;
-        if (active.id === "sync-timecode-calculator-flow") {
-          bindCalculator();
-        }
-      }
+// ③-1 合化／刑沖提示
+const combinationRows = analyzeCombinations();
+const secComboHtml = personalCard({
+  icon:'🔗', title:'合化／刑沖另欄檢查', id:'BAZI_COMBO',
+  personalSummary:combinationRows.length
+    ? client.name+'，這裡只列命盤裡實際抓到的合化、六合或沖；重點是看哪些宮位互相牽動。'
+    : client.name+'，這張盤目前沒有抓到明顯的天干五合、地支六合或六沖訊號；若要更細，仍可再看三合、三會、刑害破與藏干透出。',
+  details:combinationRows.length ? combinationRows : [
+    '目前先不硬塞合化文字，避免把教材規則誤當成你的個案結論。'
+  ],
+  tags:['合化','刑沖','另欄判斷']
+});
 
-      document.getElementById("uploadButton").addEventListener("click", () => {
-        document.getElementById("fileInput").click();
-      });
+// ④ 身強身弱
+const YONGSHEN = {
+  身強:{木:'火、土、金（洩耗剋制）',火:'土、金、水（洩耗剋制）',土:'金、水、木（洩耗剋制）',金:'水、木、火（洩耗剋制）',水:'木、火、土（洩耗剋制）'},
+  身弱:{木:'水、木（生助）',火:'木、火（生助）',土:'火、土（生助）',金:'土、金（生助）',水:'金、水（生助）'}
+};
+const yongshen = YONGSHEN[strongLabel]?.[riWx]||'需綜合判斷';
+const sec4Html = personalCard({
+  icon:'⚖️', title:'命盤格局：你是【'+strongLabel+'】的'+riTg, id:'BAZI_017',
+  personalSummary:client.name+'，你的月支是【'+yueDz+'】，五行屬【'+yueDzWx+'】。'+(isStrong
+    ?'它對你的日主【'+riWx+'】有支撐，所以這張盤先判定為【身強】。'
+    :'它對你的日主【'+riWx+'】支撐較少，所以這張盤先判定為【身弱】。'),
+  details:[
+    '用神方向可以先抓【'+yongshen+'】，也就是讓命盤能量更平衡的方向。',
+    new_strength ? new_strength : '',
+    new_xiyong   ? '適合多靠近的能量：'+new_xiyong+'；白話說，是幫助你順暢洩秀，把能力轉化為作品、成果與財富。' : '',
+    new_jishen   ? '比較需要節制的能量：'+new_jishen+'；白話說，是避免能量過滿，導致固執、想太多或壓力累積。' : '',
+  ].filter(Boolean),
+  tags:[strongLabel,'用神：'+yongshen.split('（')[0],'月支'+yueDz]
+});
 
-      document.getElementById("fileInput").addEventListener("change", async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        if (!file.name.endsWith(".py")) {
-          setStatus("請上傳 .py 檔案");
-          return;
-        }
-        const code = await file.text();
-        const now = new Date().toISOString();
-        const record = {
-          id: crypto.randomUUID(),
-          title: file.name.replace(/\.py$/i, "").replaceAll("_", " "),
-          filename: file.name,
-          purpose: "",
-          steps: "",
-          code,
-          tags: ["uploaded", "python"],
-          createdAt: now,
-          updatedAt: now
-        };
-        scripts = [record, ...scripts];
-        activeId = record.id;
-        persist();
-        render();
-        setStatus(`已上傳 ${file.name}`);
-        event.target.value = "";
-      });
+// ⑤ 當前大運
+const dyRelation = getRelation(riWx, curDyWx);
+const sec5Html = personalCard({
+  icon:'🌀', title:'當前大運【'+curDyGz+'】'+curDyShen+'（'+curDyAge+'～'+curDyEnd+'歲）', id:'BAZI_021',
+  personalSummary:client.name+'，你目前走到【'+curDyGz+'】大運，主題是【'+curDyShen+'】。白話說，這十年不是單純好或壞，而是會把「'+relationPlain(dyRelation)+'」這件事推到你面前。',
+  details:[
+    '所謂【'+curDyShen+'】課題，白話就是：'+relationPlain(dyRelation)+'。對你來說會表現在進修、研究、信念整理、貴人資源、休息節奏，以及把專業沉澱成方法。',
+    '這段時間大約落在 '+curDyAge+' 到 '+curDyEnd+' 歲，會比較明顯地把這些課題帶到你生活裡。',
+    ...dayunAppliedSummary(),
+    curDyShen.includes('印') ? '老師的溫馨提醒：這幾年想得多、做得少是很正常的。這不是拖延，而是你的大腦正在做深度整理；最適合你的破局方式，是把想到的東西寫下來，或做成作品、課程、文章，讓食傷能量把內在想法帶出去。' : '',
+  ].filter(Boolean),
+  tags:['大運'+curDyGz, curDyShen, '五行'+curDyWx]
+});
 
-      document.getElementById("editor").addEventListener("submit", (event) => {
-        event.preventDefault();
-        const now = new Date().toISOString();
-        const title = fields.title.value.trim() || fields.filename.value.trim() || "未命名腳本";
-        const record = {
-          id: crypto.randomUUID(),
-          title,
-          filename: fields.filename.value.trim() || `${title.replaceAll(" ", "_")}.py`,
-          purpose: composePurpose(fields.purpose.value, fields.note.value, fields.errors.value),
-          steps: fields.steps.value.trim(),
-          code: fields.code.value.trim(),
-          tags: splitTags(fields.tags.value),
-          createdAt: now,
-          updatedAt: now
-        };
-        if (editingId) {
-          scripts = scripts.map((script) =>
-            script.id === editingId
-              ? {
-                  ...script,
-                  title: record.title,
-                  filename: record.filename,
-                  purpose: record.purpose,
-                  steps: record.steps,
-                  code: record.code,
-                  tags: record.tags,
-                  updatedAt: now
-                }
-              : script
-          );
-          activeId = editingId;
-          persist();
-          clearEditor();
-          render();
-          setStatus(`已更新 ${record.filename}`);
-          return;
-        }
-        scripts = [record, ...scripts];
-        activeId = record.id;
-        persist();
-        clearEditor();
-        render();
-        setStatus(`已保存 ${record.filename}`);
-      });
+// ⑥ 流年
+const lyRelation = getRelation(riWx, lyWx);
+const sec6Html = personalCard({
+  icon:'📅', title:lyYear+'年流年【'+lyGz+'】對你的影響', id:'BAZI_024',
+  personalSummary:lyYear+'年是【'+lyGz+'】年，流年天干【'+lyTg+'】對你來說是【'+lyStar+'】。這一年不是只看好壞，而是看它把哪一種能量推到你面前。',
+  details:[
+    ...liunianAppliedSummary(),
+    '大運【'+curDyGz+'】遇上流年【'+lyGz+'】：'+getDayunLiunianNote(curDyWx, lyWx)+'。',
+    advisoryGuideFor(lyStar),
+  ].filter(Boolean),
+  tags:['流年'+lyGz, lyStar, lyYear+'年']
+});
 
-      document.getElementById("cancelEditButton").addEventListener("click", () => {
-        clearEditor();
-        setStatus("已取消編輯");
-      });
+// ⑦ 財運
+const sec7Html = personalCard({
+  icon:'💰', title:'你的財運分析', id:'BAZI_029',
+  personalSummary:wealthBigSummary(),
+  details:[
+    client.name+'，以你的日主【'+riTg+riWx+'】來看，財星是【'+caiStar+'】。'+lyYear+'年流年【'+lyGz+'】，'+(lyWx===caiStar?'剛好碰到你的財星，賺錢機會會比較容易被看見。':'財運不只看有沒有錢進來，也要看你能不能穩穩接住。'),
+    caiEntries.length
+      ? '原局不是沒有財星。你盤裡的財星位置是：'+formatTenGodEntries(caiEntries)+'。正財偏向穩定收入、現實資源與金錢秩序；偏財偏向機會、人脈與彈性收入。'
+      : '原局天干與藏干沒有明顯財星，所以財運要更重視大運、流年與食傷生財的時機。',
+    zhengCaiEntries.length ? '正財重點：'+formatTenGodEntries(zhengCaiEntries)+'，代表你其實有務實理財、穩定累積與看重安全感的一面。' : '',
+    pianCaiEntries.length ? '偏財重點：'+formatTenGodEntries(pianCaiEntries)+'，代表你也有靠機會、人脈、專案或非固定收入打開財路的可能。' : '',
+    jieCaiEntries.length ? '劫財提醒：'+formatTenGodEntries(jieCaiEntries)+'，錢容易牽涉朋友、家人、分帳或共同資源；合夥和借貸要規則清楚。' : '',
+    jieCaiEntries.length ? '防禦型提醒：「親兄弟明算帳」並不是小氣，而是幫你守住財富、維持和氣的防火牆。' : '',
+    lyYear+'年流年是【'+lyStar+'】，不是直接的財星年；它比較像先加強學習、資源、貴人與內在整理。財運要靠你把專業整理成可收費、可成交的成果。',
+    isStrong?'你屬於身強格局，原局又有財星，適合主動整理客戶、價格、服務方案與收款規則。':'你屬於身弱格局，財星出現時要記得量力而為，先穩住節奏再擴張。',
+    '喜用方向仍可抓【'+yongshen+'】；對你來說，金代表輸出與作品，水代表財與客戶，木代表規則與職場位置，這三類能量要被好好使用。'
+  ].filter(Boolean),
+  tags:['財星'+caiStar, strongLabel, '流年'+lyGz]
+});
 
-      document.getElementById("query").addEventListener("input", (event) => {
-        query = event.target.value;
-        render();
-      });
+// ⑧ 事業
+const sec8Html = personalCard({
+  icon:'💼', title:'你的事業職涯分析', id:'BAZI_032',
+  personalSummary:careerBigSummary(),
+  details:[
+    client.name+'，你的正官星五行是【'+guanStar+'】，它代表職場裡的責任、規則、主管，也代表你可以被看見的位置。目前大運【'+curDyGz+'】帶著【'+curDyShen+'】的主題。',
+    getDayunCareerNote(curDyShen)+'，所以這段時間的職涯選擇，可以多觀察自己是不是正在累積更長線的能力。',
+    lyYear+'年流年是【'+lyStar+'】：'+getLiunianCareerNote(lyStar)+'。',
+    '用這張盤來看，事業不是只看正官星【'+guanStar+'】，還要看目前大運【'+curDyShen+'】怎麼讓你做事：它比較偏向先累積專業、建立方法，再用作品或成果被看見。',
+    '適合職業／職涯方向：'+careerDirectionSummary()+'。這些方向不是硬性職業名稱，而是你比較容易發揮的工作型態。',
+    guanEntries.length ? '官星落點：'+formatTenGodEntries(guanEntries)+'，表示責任、制度、名聲與被看見的位置會在這些宮位被啟動。' : '',
+    shiShangEntries.length ? '食傷落點：'+formatTenGodEntries(shiShangEntries)+'，代表你可以靠表達、作品、教學、內容輸出或方法整理來累積職涯能見度。' : '',
+    ...careerInsights,
+    teacherViewBlock(teacherKB, '職場人際策略', {ten_god:curDyShen}, 1, {title:'老師判斷依據（職場）', maxPoints:3}),
+    '遇到壓力時，不一定要急著硬碰硬；先分清楚哪些是責任，哪些只是別人的期待，會更穩。',
+  ].filter(Boolean),
+  tags:['正官'+guanStar, '大運'+curDyShen, '流年'+lyStar]
+});
 
-      document.getElementById("scriptList").addEventListener("click", (event) => {
-        const row = event.target.closest("[data-id]");
-        if (!row) return;
-        activeId = row.dataset.id;
-        render();
-      });
+// ⑨ 感情
+const sec9Html = personalCard({
+  icon:'💕', title:'你的感情婚姻分析', id:'BAZI_034',
+  personalSummary:client.name+'，以傳統八字來看，你的配偶星是【'+peiouStar+'】。'+lyYear+'年流年【'+lyGz+'】，'+(lyWx===peiouStar?'剛好碰到配偶星，感情機緣會比較容易浮上檯面。':'感情的重點不一定是突然出現大事件，而是你怎麼回應關係裡的靠近與距離。'),
+  details:[
+    '你的日支是【'+riDz+'】，也就是婚姻宮；它透露的是你在親密關係裡容易期待什麼、在意什麼。'+getRizhiMarriageNote(riDz)+'。',
+    ...spouseProfileSummary(),
+    lyYear+'年的流年十神是【'+lyStar+'】：'+getLiunianLoveNote(lyStar)+'。這裡講的是今年關係裡比較容易出現的心理狀態，不是直接斷定一定結婚或分手。',
+    lyWx===peiouStar
+      ? '今年流年五行剛好碰到你的配偶星【'+peiouStar+'】，比較容易有人際、曖昧或關係議題被看見；但是否能成為穩定關係，還要看夫妻宮是否受沖合與大運是否支持。'
+      : '今年流年五行不是直接碰到你的配偶星【'+peiouStar+'】，所以感情比較像是調整互動方式，而不是單純等一個桃花事件。',
+    lyWx!==peiouStar ? '感情心法：今年沒有直接牽動配偶星，反而代表感情世界少一點外在雜音。這一年更適合靜下心來建立共識、重新調整步調，把關係裡真正需要修復的地方慢慢說清楚。' : '',
+    ...loveInsights,
+    '這段時間感情上最重要的不是猜對方，而是把自己的界線和需要說清楚。',
+  ].filter(Boolean),
+  tags:['配偶星'+peiouStar, '日支'+riDz, '流年'+lyStar]
+});
 
-      document.getElementById("detailPanel").addEventListener("click", async (event) => {
-        const copyButton = event.target.closest("[data-copy]");
-        const deleteButton = event.target.closest("[data-delete]");
-        const editButton = event.target.closest("[data-edit]");
-        const downloadButton = event.target.closest("[data-download]");
-        if (editButton) {
-          const script = scripts.find((item) => item.id === editButton.dataset.edit);
-          if (script) setEditingMode(script);
-          return;
-        }
-        if (downloadButton) {
-          const script = scripts.find((item) => item.id === downloadButton.dataset.download);
-          if (script) {
-            const blob = new Blob([script.code], {
-              type: script.filename.endsWith(".py") ? "text/x-python" : "text/plain"
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = script.filename || "script.txt";
-            link.click();
-            URL.revokeObjectURL(url);
-            setStatus(`已下載 ${script.filename}`);
-          }
-          return;
-        }
-        if (copyButton) {
-          const script = scripts.find((item) => item.id === copyButton.dataset.copy);
-          if (script) {
-            await navigator.clipboard.writeText(script.code);
-            setStatus("程式碼已複製");
-          }
-        }
-        if (deleteButton) {
-          scripts = scripts.filter((item) => item.id !== deleteButton.dataset.delete);
-          activeId = scripts[0]?.id || "";
-          persist();
-          render();
-          setStatus("已刪除腳本");
-        }
-      });
+// ⑩ 健康
+const sec10Html = personalCard({
+  icon:'🏥', title:'你的健康體質分析', id:'BAZI_042',
+  personalSummary:client.name+'，你的日主【'+riTg+riWx+'】對應到身體上，主要會看【'+(WX_ORGAN[riWx]||'')+'】。'+(isStrong?'你的底氣不算弱，但能量太滿時也容易累積成壓力。':'你的能量比較需要被照顧，越忙越要把休息排進生活裡。'),
+  details:[
+    '主要保養方向可以先放在【'+(WX_ORGAN[riWx]||'—')+'】。',
+    '命盤裡相對需要補足的地方，也可以留意【'+(WX_ORGAN[weakWx]||'—')+'】。',
+    lyYear+'年流年【'+lyGz+'】五行屬【'+lyWx+'】，'+getHealthNote(lyWx,riWx)+'。',
+    ...healthInsights,
+  ].filter(Boolean),
+  tags:['注意'+(WX_ORGAN[riWx]?.split('、')[0]||''), strongLabel, '流年'+lyGz]
+});
 
-      document.getElementById("exportButton").addEventListener("click", () => {
-        const blob = new Blob([JSON.stringify(scripts, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "python-script-vault.json";
-        link.click();
-        URL.revokeObjectURL(url);
-        setStatus("資料已匯出");
-      });
+// ⑪ 流日日曆
+const HEALTH_KE_MAP = {木:'土',火:'金',土:'水',金:'木',水:'火'};
+const healthCautionWx = Object.entries(HEALTH_KE_MAP).find(([,target]) => target === riWx)?.[0] || riWx;
+const sec11Html = `
+<div class="alert-box">
+  <strong>📌 ${client.name} 的個人化流日提示（${lyYear}年）</strong><br>
+  以下依你的日主【${riTg}${riWx}】與${lyYear}年流年【${lyGz}】，列出各類型吉日方向。
+</div>
+<div class="liuri-grid">
+  <div class="liuri-card">
+    <div class="liuri-card-icon">💰</div>
+    <div class="liuri-card-title">得財日</div>
+    <div class="liuri-card-days">財星五行：${caiStar}<br>逢${caiStar}日為佳</div>
+  </div>
+  <div class="liuri-card">
+    <div class="liuri-card-icon">💼</div>
+    <div class="liuri-card-title">工作機會日</div>
+    <div class="liuri-card-days">正官星：${guanStar}<br>逢${guanStar}日留意</div>
+  </div>
+  <div class="liuri-card">
+    <div class="liuri-card-icon">🌸</div>
+    <div class="liuri-card-title">桃花日</div>
+    <div class="liuri-card-days">配偶星：${peiouStar}<br>逢${peiouStar}日留意</div>
+  </div>
+  <div class="liuri-card">
+    <div class="liuri-card-icon">🏥</div>
+    <div class="liuri-card-title">健康注意日</div>
+    <div class="liuri-card-days">注意：${WX_ORGAN[riWx]?.split('、')[0]||''}（${riWx}）<br>逢${riWx}日或${healthCautionWx}日留意</div>
+  </div>
+</div>
+`;
 
-      render();
-    </script>
-  </body>
+// ⑫ 八字×風水整合
+const supportMethod = new_wuxing || new_buyun || '';
+const fengshuiTeacherEvidence = fengshuiEvidenceHtml();
+const sec12Html = `
+<div class="kb-card">
+  <div class="kb-card-title">🏠 ${client.name} 的專屬風水佈局建議</div>
+  <div class="kb-content">
+    <p style="font-weight:600;color:${wxColor};">你是【${riTg}${riWx}】命主，${strongLabel}格局</p>
+    <div class="summary-panel">
+      <div class="summary-panel-title">這一欄怎麼看</div>
+      ${compactList([
+        `先看「三位老師統整版」決定實際操作方向。`,
+        `再看「徐玉蘭老師五行命主方位（明細保留）」核對財位、事業位、文昌位、桃花位。`,
+        `最後看紫白九宮格，確認${CURRENT_YEAR}年哪些方位可催旺、哪些方位先安靜。`
+      ])}
+    </div>
+    ${waterPlacementHtml}
+    ${supportMethod ? `<div class="summary-panel"><div class="summary-panel-title">五行補強</div>${actionList(supportMethod)}</div>` : ''}
+    ${new_kaiyun ? `<div class="summary-panel"><div class="summary-panel-title">開運物</div>${actionList(new_kaiyun)}</div>` : ''}
+    ${fengshuiTeacherEvidence}
+  </div>
+</div>
+`;
+
+// ── 給客戶看的快速版：簡短、口語、少術語 ──
+const quickSec1Html = personalCard({
+  icon:'🌟',
+  title:'你給人的核心感覺',
+  personalSummary:`${client.name}，你是【${riTg}${riWx}】日主。簡單說，你的底色是${riWx}，做事比較重視穩定、承擔和安全感。`,
+  details:[
+    new_gexing || '',
+    new_youshi ? '你的優勢是：'+new_youshi : '',
+    new_mangdian ? '要留意的是：'+new_mangdian : '',
+  ]
+});
+
+const quickSec4Html = personalCard({
+  icon:'⚖️',
+  title:'你的命盤能量',
+  personalSummary:`這張盤先看作【${strongLabel}】。${isStrong ? '你的能量不弱，遇到事情比較能扛，也比較適合主動做選擇。' : '你的能量需要被支持，越重要的事越要先穩住節奏。'}`,
+  details:[
+    `讓自己更平衡的方向：${yongshen}。`,
+  ]
+});
+
+const quickSec5Html = personalCard({
+  icon:'🌀',
+  title:'現在這十年的重點',
+  personalSummary:`你目前在【${curDyGz}】大運，主題是【${curDyShen}】。這段時間比較適合把注意力放在學習、整理內在、累積專業與建立自己的節奏。`,
+  details:[
+    getDayunCareerNote(curDyShen),
+  ]
+});
+
+const quickSec6Html = personalCard({
+  icon:'📅',
+  title:`${lyYear}年的提醒`,
+  personalSummary:`${lyYear}年是【${lyGz}】年，對你來說是【${lyStar}】的能量被推上來。`,
+  details:[
+    `今年適合做的事：${getLiunianCareerNote(lyStar)}。`,
+    '不用急著把所有事一次做到位，先抓一兩個最重要的方向穩穩推進。',
+  ]
+});
+
+// ── 組合完整版 ──
+const fullHtml=`
+${section('🌟','① 日主與五行特質分析',sec1Html,true)}
+${section('🏛','② 四柱宮位解析',sec3Html,true)}
+${section('🔗','③ 合化／刑沖另欄檢查',secComboHtml,true)}
+${section('⚖️','④ 身強身弱判斷',sec4Html,true)}
+${section('🌀','⑤ 當前大運解讀',sec5Html,true)}
+${section('📅','⑥ '+lyYear+'年流年分析',sec6Html,true)}
+${section('💰','⑦ 財運分析',sec7Html)}
+${section('💼','⑧ 事業職涯分析',sec8Html)}
+${section('💕','⑨ 感情婚姻分析',sec9Html)}
+${section('🏥','⑩ 健康體質分析',sec10Html)}
+${section('📆','⑪ 每月流日日曆',sec11Html)}
+${section('🏠','⑫ 八字×風水整合佈局',sec12Html)}
+<div class="doris-quote">
+  <p>每一個命盤都是獨一無二的生命藍圖，<br>
+  數字背後是你走過的每一步。<br>
+  願這份分析成為你前行的光。<br><br>— Doris</p>
+</div>
+`;
+
+// ── 組合快速版 ──
+const quickHtml=`
+${section('🌟','① 你是誰：日主與五行',quickSec1Html,true)}
+${section('⚖️','② 命盤能量：身強或身弱',quickSec4Html,true)}
+${section('🌀','③ 現在的你：當前大運',quickSec5Html,true)}
+${section('📅','④ '+lyYear+'年提醒',quickSec6Html,true)}
+<div class="doris-quote">
+  <p>每一個命盤都是獨一無二的生命藍圖，<br>
+  數字背後是你走過的每一步。<br>
+  願這份分析成為你前行的光。<br><br>— Doris</p>
+</div>
+`;
+
+const lockedFullHtml = `
+<div class="kb-card">
+  <div class="kb-card-title">🔒 完整版已保護</div>
+  <div class="kb-content">
+    <p>目前帳號權限是「${roleLabel()}」，只顯示客戶快速版。</p>
+    <p>完整版包含老師觀點、完整推論與風水依據，僅開放 admin / teacher 帳號查看。</p>
+  </div>
+</div>
+`;
+const fullBtn = document.getElementById('tab-btn-full');
+const quickBtn = document.getElementById('tab-btn-quick');
+document.getElementById('tab-full').innerHTML  = canViewTeacherReport() ? fullHtml : lockedFullHtml;
+document.getElementById('tab-quick').innerHTML = quickHtml;
+if(canViewTeacherReport()){
+  fullBtn?.classList.remove('hidden');
+}else{
+  fullBtn?.classList.add('hidden');
+  switchTab('quick', quickBtn);
+}
+}
+
+
+// ══════════════════════════════════════════════
+// Tab 切換
+// ══════════════════════════════════════════════
+function switchTab(tab,btn){
+if(tab === 'full' && !canViewTeacherReport()){
+  alert('完整版只開放給管理員或命理師帳號。朋友試用會看到客戶快速版。');
+  tab = 'quick';
+  btn = document.getElementById('tab-btn-quick') || btn;
+}
+document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+document.getElementById('tab-full') .classList.toggle('hidden',tab!=='full');
+document.getElementById('tab-quick').classList.toggle('hidden',tab!=='quick');
+}
+
+// ══════════════════════════════════════════════
+// 農曆格式化（原版保留）
+// ══════════════════════════════════════════════
+function formatLunar(raw){
+if(!raw) return '—';
+let s=raw.replace('农历','').replace('農曆','').trim();
+const GZ_YEAR={
+甲子:1984,乙丑:1985,丙寅:1986,丁卯:1987,戊辰:1988,己巳:1989,
+庚午:1990,辛未:1991,壬申:1992,癸酉:1993,甲戌:1994,乙亥:1995,
+丙子:1996,丁丑:1997,戊寅:1998,己卯:1999,庚辰:2000,辛巳:2001,
+壬午:2002,癸未:2003,甲申:2004,乙酉:2005,丙戌:2006,丁亥:2007,
+戊子:2008,己丑:2009,庚寅:2010,辛卯:2011,壬辰:2012,癸巳:2013,
+甲午:2014,乙未:2015,丙申:2016,丁酉:2017,戊戌:2018,己亥:2019,
+庚子:2020,辛丑:2021,壬寅:2022,癸卯:2023,甲辰:2024,乙巳:2025,丙午:2026
+};
+const gzMatch=s.match(/^([甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥])年/);
+let minguo='';
+if(gzMatch){
+const wy=GZ_YEAR[gzMatch[1]]||0;
+minguo=wy?(wy-1911)+'年':gzMatch[1]+'年';
+s=s.replace(gzMatch[0],'');
+}
+const CN_M={'正':1,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'十一':11,'十二':12};
+const mMatch=s.match(/^(閏?)(正|一|二|三|四|五|六|七|八|九|十|十一|十二)月/);
+let lunarMonth='';
+if(mMatch){lunarMonth=(CN_M[mMatch[2]]||mMatch[2])+'月';s=s.replace(mMatch[0],'');}
+const CN_D={
+'初一':1,'初二':2,'初三':3,'初四':4,'初五':5,'初六':6,'初七':7,'初八':8,'初九':9,'初十':10,
+'十一':11,'十二':12,'十三':13,'十四':14,'十五':15,'十六':16,'十七':17,'十八':18,'十九':19,'二十':20,
+'廿一':21,'廿二':22,'廿三':23,'廿四':24,'廿五':25,'廿六':26,'廿七':27,'廿八':28,'廿九':29,'三十':30
+};
+let lunarDay='';
+for(const[k,v]of Object.entries(CN_D)){if(s.startsWith(k)){lunarDay=v+'日';s=s.replace(k,'');break;}}
+const tMatch=s.match(/([甲乙丙丁戊己庚辛壬癸]?)([子丑寅卯辰巳午未申酉戌亥])[时時]/);
+const shi=tMatch?tMatch[1]+tMatch[2]+'時':'';
+return[minguo,lunarMonth,lunarDay,shi].filter(Boolean).join(' ');
+}
+
+// ══════════════════════════════════════════════
+// 初始化
+// ══════════════════════════════════════════════
+window.onload=()=>{
+initSelects();
+initFirebase();
+updateAuthUI();
+showScreen('screen-list');
+};
+</script>
+</body>
 </html>
