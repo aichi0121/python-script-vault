@@ -205,6 +205,19 @@
         font-size: 1.25rem;
       }
 
+      .calculator-panel-wide {
+        grid-template-columns: minmax(190px, 1fr) minmax(130px, 0.6fr) minmax(180px, 0.85fr) minmax(150px, 0.65fr) minmax(220px, 1fr);
+        align-items: end;
+      }
+
+      .calculator-panel-wide .compact-details {
+        grid-column: 1 / -1;
+      }
+
+      .calculator-title {
+        align-self: center;
+      }
+
       .calculator-result {
         display: flex;
         align-items: center;
@@ -225,6 +238,15 @@
         color: var(--accent-strong);
         font-family: "SFMono-Regular", Consolas, monospace;
         font-size: 1.45rem;
+      }
+
+      .calculator-actions {
+        display: grid;
+        gap: 8px;
+      }
+
+      .calculator-actions button {
+        width: 100%;
       }
 
       .compact-details {
@@ -485,6 +507,16 @@
         .library-grid {
           grid-template-columns: 1fr;
         }
+
+        .calculator-panel-wide {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .calculator-title,
+        .calculator-actions,
+        .calculator-panel-wide .compact-details {
+          grid-column: 1 / -1;
+        }
       }
 
       @media (max-width: 620px) {
@@ -506,6 +538,10 @@
         .code-block button {
           flex: 1;
         }
+
+        .calculator-panel-wide {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -524,34 +560,6 @@
             <button class="primary-action" id="uploadButton" type="button">上傳 .py</button>
             <button class="secondary-action" id="exportButton" type="button">匯出資料</button>
           </div>
-
-          <section class="calculator-panel" aria-label="剪映時間碼計算機">
-            <div>
-              <p class="eyebrow">Timecode Calculator</p>
-              <h2>剪映時間碼計算機</h2>
-            </div>
-            <label>
-              幀率
-              <select id="fpsInput">
-                <option value="23.976">23.976 fps</option>
-                <option value="24">24 fps</option>
-                <option value="25">25 fps</option>
-                <option value="29.97">29.97 fps</option>
-                <option value="30" selected>30 fps</option>
-                <option value="50">50 fps</option>
-                <option value="59.94">59.94 fps</option>
-                <option value="60">60 fps</option>
-              </select>
-            </label>
-            <label>剪映時間碼<input id="timecodeInput" value="00:00:01:13" placeholder="HH:MM:SS:FF" /></label>
-            <div class="calculator-result"><span>ffmpeg 秒數</span><strong id="offsetOutput">1.433</strong></div>
-            <details class="info-details compact-details">
-              <summary>計算細節</summary>
-              <p id="calculationDetails">0 小時 + 0 分 + 1 秒 + 13 幀 / 30 fps = 1.433 秒</p>
-            </details>
-            <button class="secondary-action" id="copySingleCommand" type="button">複製單支測試指令</button>
-            <button class="secondary-action" id="copyBatchCommand" type="button">複製批量處理指令</button>
-          </section>
 
           <form class="editor" id="editor">
             <div class="edit-banner" id="editBanner" hidden>正在編輯既有流程</div>
@@ -576,6 +584,36 @@
             </div>
             <label class="search-box">搜尋<input id="query" placeholder="檔名、標籤、指令內容" /></label>
           </header>
+
+          <section class="calculator-panel calculator-panel-wide" aria-label="剪映時間碼計算機">
+            <div class="calculator-title">
+              <p class="eyebrow">Timecode Calculator</p>
+              <h2>剪映時間碼計算機</h2>
+            </div>
+            <label>
+              幀率
+              <select id="fpsInput">
+                <option value="23.976">23.976 fps</option>
+                <option value="24">24 fps</option>
+                <option value="25">25 fps</option>
+                <option value="29.97">29.97 fps</option>
+                <option value="30" selected>30 fps</option>
+                <option value="50">50 fps</option>
+                <option value="59.94">59.94 fps</option>
+                <option value="60">60 fps</option>
+              </select>
+            </label>
+            <label>剪映時間碼<input id="timecodeInput" value="00:00:01:13" placeholder="HH:MM:SS:FF" /></label>
+            <div class="calculator-result"><span>ffmpeg 秒數</span><strong id="offsetOutput">1.433</strong></div>
+            <div class="calculator-actions">
+              <button class="secondary-action" id="copySingleCommand" type="button">複製單支測試指令</button>
+              <button class="secondary-action" id="copyBatchCommand" type="button">複製批量處理指令</button>
+            </div>
+            <details class="info-details compact-details">
+              <summary>計算細節</summary>
+              <p id="calculationDetails">0 小時 + 0 分 + 1 秒 + 13 幀 / 30 fps = 1.433 秒</p>
+            </details>
+          </section>
 
           <div class="library-grid">
             <div class="script-list" id="scriptList"></div>
