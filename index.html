@@ -995,6 +995,26 @@ done`;
               .map((error) => `<div><strong>${escapeHtml(error.title)}</strong><p>${escapeHtml(error.fix)}</p></div>`)
               .join("")}</div></details>`
           : "";
+        const frameRateHelpHtml =
+          active.id === "sync-timecode-calculator-flow"
+            ? `<details class="info-details">
+                <summary>如何查看幀率</summary>
+                <div class="error-list">
+                  <div>
+                    <strong>剪映</strong>
+                    <p>打開專案後查看「播放器／預覽視窗」旁的畫質或專案設定，找到「幀率」或「fps」。請以目前專案設定的幀率為準。</p>
+                  </div>
+                  <div>
+                    <strong>QuickTime Player（Mac）</strong>
+                    <p>打開原始影片，按下 Command + I 顯示「影片檢閱器」，在「FPS」欄位查看幀率。</p>
+                  </div>
+                  <div>
+                    <strong>終端機（ffprobe）</strong>
+                    <p>執行 ffprobe -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=noprint_wrappers=1 影片檔名.mp4。若顯示 30000/1001，代表 29.97 fps；60000/1001 代表 59.94 fps。</p>
+                  </div>
+                </div>
+              </details>`
+            : "";
         const calculatorHtml =
           active.id === "sync-timecode-calculator-flow"
             ? `<details class="info-details calculator-details">
@@ -1052,6 +1072,7 @@ done`;
           <div class="tag-row">${active.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
           <section class="note-block"><h4>用途</h4><p>${escapeHtml(info.summary || "尚未填寫")}</p></section>
           <section class="note-block"><h4>步驟</h4><pre>${escapeHtml(active.steps || "尚未填寫")}</pre></section>
+          ${frameRateHelpHtml}
           ${calculatorHtml}
           ${noteHtml}
           ${errorsHtml}
